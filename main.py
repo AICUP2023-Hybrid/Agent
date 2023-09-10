@@ -1,41 +1,16 @@
 import random
 from src.game import Game
+from initializer import initialize_turn
 
 flag = False
 
 
 def initializer(game: Game):
-    strategic_nodes = game.get_strategic_nodes()['strategic_nodes']
-    score = game.get_strategic_nodes()['score']
-    strategic_nodes = list(zip(strategic_nodes, score))
-    strategic_nodes.sort(key=lambda x: x[1], reverse=True)
-    strategic_nodes, score = list(zip(*strategic_nodes))
-    print(game.get_turn_number())
-    owner = game.get_owners()
-    for i in strategic_nodes:
-        if owner[str(i)] == -1:
-            print(game.put_one_troop(i), "-- putting one troop on", i)
-            return
+    initialize_turn(game)
 
-    adj = game.get_adj()
-    for i in strategic_nodes:
-        for j in adj[str(i)]:
-            if owner[str(j)] == -1:
-                print(game.put_one_troop(j), "-- putting one troop on neighbor of strategic node", j)
-                return
-    my_id = game.get_player_id()['player_id']
-    nodes = []
-    nodes.extend([i for i in strategic_nodes if owner[str(i)] == my_id])
-    for i in strategic_nodes:
-        for j in adj[str(i)]:
-            if owner[str(j)] == my_id:
-                nodes.append(j)
-    nodes = list(set(nodes))
-    node = random.choice(nodes)
-    game.put_one_troop(node)
-    print("3-  putting one troop on", node)
 
 def turn(game):
+    game.game_data.stage = 1
     global flag
     print(game.get_number_of_troops_to_put())
     owner = game.get_owners()

@@ -66,3 +66,18 @@ def get_chances(attacker_troops: int, defender_troops: int, fraction):
                 if dp[att_cnt][def_cnt] > 0:
                     outcomes.append(((att_cnt, def_cnt), dp[att_cnt][def_cnt]))
     return outcomes
+
+
+expected_casualty = []
+
+
+def get_expected_casualty():
+    global expected_casualty
+    if len(expected_casualty) == 0:
+        expected_casualty = []
+        for d in range(400):
+            expected_remain = 0
+            for pr, prob in get_chances(400, d, 0):
+                expected_remain += pr[0] * prob
+            expected_casualty.append(400 - expected_remain)
+    return expected_casualty

@@ -1,11 +1,14 @@
 import requests
 
+
 class Game:
     def __init__(self, token, server_ip, server_port) -> None:
         self.token = token
         self.server_ip = server_ip
         self.server_port = server_port
         self.my_turn = False
+        from utils.update_details import GameData
+        self.game_data: GameData = GameData(self)
     
     def handel_output(self, response):
         code = response.status_code
