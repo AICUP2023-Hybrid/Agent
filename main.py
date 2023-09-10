@@ -1,74 +1,56 @@
-import random
-from src.game import Game
-from initializer import initialize_turn
+# author: Vahid Ghafourian
+# Date: 2023/09/06
 
-flag = False
+from Kernel import Kernel
+from components.game import Game
+from clients.client_ai import Client_AI
+from clients.client_enemy_one import Client_Enemy_One
+from clients.client_enemy_two import Client_Enemy_Two
+from turn_controllers import change_turn
+import os
+
+import json
+
+def read_config():
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+    return config
+
+def main():
+    # read map file
+    kernel_main_game = Game()
+    # ask player to choose map from the list of maps
+    maps = os.listdir('maps')
+
+    ## get the selected map from the player
+    selected_map = '3'
+
+    while selected_map.isdigit() == False or int(selected_map) >= len(maps) or int(selected_map) < 0:
+        ## show the list of maps from the maps folder
+        print("Choose a map from the list of maps:")
+        for i, map in enumerate(maps):
+            print(i,'-', map)
+        selected_map = input("Enter the number of the map you want to choose: ")
+
+    ## read the selected map
+    kernel_main_game.read_map('maps/'+maps[int(selected_map)])
+
+    # read config
+    kernel_config = read_config()
+
+    # Build Kernel
+    kernel = Kernel(kernel_main_game, kernel_config)
+
+    # Build AI Client
+    c_ai = Client_AI(kernel)
+
+    # Build Enemy clients
+    c_two = Client_Enemy_One(kernel)
+    c_three = Client_Enemy_Two(kernel)
+
+    change_turn(kernel.main_game, c_ai, c_two, c_three)
+
+if __name__ == '__main__':
+    main()
 
 
-def initializer(game: Game):
-    initialize_turn(game)
-
-
-def turn(game):
-    game.game_data.stage = 1
-    global flag
-    print(game.get_number_of_troops_to_put())
-    owner = game.get_owners()
-    for i in owner.keys():
-        if owner[str(i)] == -1 and game.get_number_of_troops_to_put()['number_of_troops'] > 1:
-            print(game.put_troop(i, 1))
-            
-    list_of_my_nodes = []
-    for i in owner.keys():
-        if owner[str(i)] == game.get_player_id()['player_id']:
-            list_of_my_nodes.append(i)
-    print(game.put_troop(random.choice(list_of_my_nodes), game.get_number_of_troops_to_put()['number_of_troops']))
-    print(game.get_number_of_troops_to_put())
-
-    print(game.next_state())
-
-    # find the node with the most troops that I own
-    max_troops = 0
-    max_node = -1
-    owner = game.get_owners()
-    for i in owner.keys():
-        if owner[str(i)] == game.get_player_id()['player_id']:
-            if game.get_number_of_troops()[i] > max_troops:
-                max_troops = game.get_number_of_troops()[i]
-                max_node = i
-    # find a neighbor of that node that I don't own
-    adj = game.get_adj()
-    for i in adj[max_node]:
-        if owner[str(i)] != game.get_player_id()['player_id'] and owner[str(i)] != -1:
-            print(game.attack(max_node, i, 1, 0.5))
-            break
-    print(game.next_state())
-    print(game.get_state())
-    # get the node with the most troops that I own
-    max_troops = 0
-    max_node = -1
-    owner = game.get_owners()
-    for i in owner.keys():
-        if owner[str(i)] == game.get_player_id()['player_id']:
-            if game.get_number_of_troops()[i] > max_troops:
-                max_troops = game.get_number_of_troops()[i]
-                max_node = i
-    print(game.get_reachable(max_node))
-    destination = random.choice(game.get_reachable(max_node)['reachable'])
-    print(game.move_troop(max_node, destination, 1))
-    print(game.next_state())
-
-    if flag == False:
-        max_troops = 0
-        max_node = -1
-        owner = game.get_owners()
-        for i in owner.keys():
-            if owner[str(i)] == game.get_player_id()['player_id']:
-                if game.get_number_of_troops()[i] > max_troops:
-                    max_troops = game.get_number_of_troops()[i]
-                    max_node = i
-
-        print(game.get_number_of_troops()[str(max_node)])
-        print(game.fort(max_node, 3))
-        print(game.get_number_of_fort_troops())
-        flag = True
