@@ -2,9 +2,9 @@ from typing import List
 
 import networkx as nx
 
-from ..game_components.Node import Node
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
+from components.node import Node
 
 
 class GameData:

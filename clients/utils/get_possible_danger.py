@@ -2,9 +2,9 @@ import networkx as nx
 import numpy as np
 from networkx import NetworkXNoPath
 
-from ..game_components.Node import Node
 from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.update_details import GameData
+from components.node import Node
 
 
 def get_surprise_danger(gdata: GameData, target: Node, player):
