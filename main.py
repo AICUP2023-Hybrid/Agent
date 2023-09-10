@@ -3,9 +3,9 @@
 
 from Kernel import Kernel
 from components.game import Game
-from clients.client_ai import Client_AI
-from clients.client_enemy_one import Client_Enemy_One
-from clients.client_enemy_two import Client_Enemy_Two
+from clients.client_ai import ClientAi
+from clients.client_enemy_one import ClientEnemyOne
+from clients.client_enemy_two import ClientEnemyTwo
 from turn_controllers import change_turn
 import os
 
@@ -42,11 +42,11 @@ def main():
     kernel = Kernel(kernel_main_game, kernel_config)
 
     # Build AI Client
-    c_ai = Client_AI(kernel)
+    c_ai = ClientAi(kernel)
 
     # Build Enemy clients
-    c_two = Client_Enemy_One(kernel)
-    c_three = Client_Enemy_Two(kernel)
+    c_two = ClientEnemyOne(kernel)
+    c_three = ClientEnemyTwo(kernel)
 
     change_turn(kernel.main_game, c_ai, c_two, c_three)
 

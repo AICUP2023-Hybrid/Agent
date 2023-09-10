@@ -16,7 +16,6 @@ def initialize_turn(game: GameClient):
         if node.owner is None:
             print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
             return
-    print('done?')
 
     my_nodes = [
         (node, get_node_danger(game.game_data, node))

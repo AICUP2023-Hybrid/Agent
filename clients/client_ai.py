@@ -4,10 +4,10 @@
 from clients.game_client import GameClient
 import random
 
-from clients.initializer import initialize_turn
+from clients.stages.initializer import initialize_turn
 
 
-class Client_AI():
+class ClientAi():
     def __init__(self, kernel) -> None:
         self.flag = False
         self.kernel = kernel

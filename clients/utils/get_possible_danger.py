@@ -18,7 +18,6 @@ def get_surprise_danger(gdata: GameData, target: Node, player):
             passable_nodes.append(node.id)
         else:
             source_nodes.append(node.id)
-    print('oj')
     max_attack_power = 0
     for src in source_nodes:
         try:

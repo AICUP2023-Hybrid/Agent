@@ -75,9 +75,11 @@ def get_expected_casualty():
     global expected_casualty
     if len(expected_casualty) == 0:
         expected_casualty = []
-        for d in range(100):
+        for d in range(80):
             expected_remain = 0
             for pr, prob in get_chances(100, d, 0):
                 expected_remain += pr[0] * prob
             expected_casualty.append(100 - expected_remain)
+        for i in range(80, 400):
+            expected_casualty.append(0.689 * i)  # good approx
     return expected_casualty

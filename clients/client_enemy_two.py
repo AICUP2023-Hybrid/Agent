@@ -5,7 +5,7 @@ from clients.game_client import GameClient
 import random
 
 
-class Client_Enemy_Two():
+class ClientEnemyTwo():
     def __init__(self, kernel) -> None:
         self.flag = False
         self.kernel = kernel
