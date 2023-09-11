@@ -15,6 +15,7 @@ class GameData:
         self.game = game
         self.remaining_init = [35, 35, 35]
         self.stage = 0
+        self.done_fort = False
 
     def update_game_state(self):
         if len(self.nodes) == 0:
@@ -51,6 +52,10 @@ class GameData:
                 if node.owner is None:
                     continue
                 self.remaining_init[node.owner] -= node.number_of_troops
+        else:
+            self.remaining_init = [0, 0, 0]
+            self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
+            # TODO calculate other players troop count
 
     def get_board_graph(self) -> nx.DiGraph:
         graph: nx.DiGraph = nx.DiGraph()
