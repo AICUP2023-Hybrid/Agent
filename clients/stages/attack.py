@@ -71,7 +71,7 @@ def plan_attack(game: GameClient):
                     src = node
                     tar = nei
 
-    if max_score >= 0:
+    if max_score > 0:
         print('doing single attack', file=f)
         troops_to_put = max(0, int(3 - floor(max_score)))
         print(troops_to_put, src.id, file=f)
