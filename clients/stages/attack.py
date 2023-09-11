@@ -7,11 +7,10 @@ from clients.utils.get_possible_danger import get_surprise_danger, get_node_dang
 from clients.utils.update_details import GameData
 from components.node import Node
 
-f = open('log.txt', 'w')
-
 
 def plan_attack(game: GameClient):
     gdata: GameData = game.game_data
+    f = open(f'log{gdata.player_id}.txt', 'a')
     remaining_troops = gdata.remaining_init[gdata.player_id]
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
@@ -31,14 +30,14 @@ def plan_attack(game: GameClient):
         danger = get_node_danger(gdata, st_node)
         for node in path:
             node.restore_version()
-        if danger > 0:
+        if danger > 0 and len(my_strategic) < 3 and gdata.phase_2_turns <= 7:
             continue
         if max_attack_power < attack_power:
             max_attack_power = attack_power
             max_path = path
 
     if len(max_path) > 0:
-        print('doing strategic attack_strategies', file=f)
+        print('doing strategic attack', file=f)
         game.put_troop(max_path[0].id, remaining_troops)
         gdata.update_game_state()
         game.next_state()

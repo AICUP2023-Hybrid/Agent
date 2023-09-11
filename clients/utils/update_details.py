@@ -15,6 +15,7 @@ class GameData:
         self.game = game
         self.remaining_init = [35, 35, 35]
         self.stage = 0
+        self.phase_2_turns = 1
         self.done_fort = False
 
     def update_game_state(self):
