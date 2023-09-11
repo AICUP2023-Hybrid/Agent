@@ -83,3 +83,20 @@ def get_expected_casualty():
         for i in range(80, 400):
             expected_casualty.append(0.689 * i)  # good approx
     return expected_casualty
+
+
+def get_expected_casualty_by_troops(attack_troops, defend_troops):
+    all_pos = get_chances(attack_troops, defend_troops, 0)
+    exp = 0
+    for (attack, defence), possibility in all_pos:
+        exp += possibility * (attack_troops - attack)
+    return exp
+
+
+def get_win_rate(attack_troops, defend_troops):
+    all_pos = get_chances(attack_troops, defend_troops, 0)
+    exp = 0
+    for (attack, defence), possibility in all_pos:
+        if defence == 0:
+            exp += possibility
+    return exp

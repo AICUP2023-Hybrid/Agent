@@ -30,7 +30,7 @@ def plan_attack(game: GameClient):
         danger = get_node_danger(gdata, st_node)
         for node in path:
             node.restore_version()
-        if danger > 0 and len(my_strategic) < 3 and gdata.phase_2_turns <= 7:
+        if danger > 0 and (len(my_strategic) < 3 or gdata.phase_2_turns <= 7):
             continue
         if max_attack_power < attack_power:
             max_attack_power = attack_power
@@ -65,15 +65,15 @@ def plan_attack(game: GameClient):
             if nei.owner not in [None, gdata.player_id]:
                 troops = nei.number_of_troops + nei.number_of_fort_troops
                 casualty = expected_casualty[troops] + 1
-                score = node.number_of_troops + 3 - casualty
+                score = 3 - casualty
                 if max_score < score:
                     max_score = score
                     src = node
                     tar = nei
 
-    if max_score > 0:
+    if max_score >= 0:
         print('doing single attack', file=f)
-        troops_to_put = max(0, int(ceil(3 - floor(max_score))))
+        troops_to_put = max(0, int(3 - floor(max_score)))
         print(troops_to_put, src.id, file=f)
         if troops_to_put > 0:
             game.put_troop(src.id, troops_to_put)
