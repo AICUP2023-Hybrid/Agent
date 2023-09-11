@@ -65,7 +65,7 @@ def plan_attack(game: GameClient):
             if nei.owner not in [None, gdata.player_id]:
                 troops = nei.number_of_troops + nei.number_of_fort_troops
                 casualty = expected_casualty[troops] + 1
-                score = 3 - casualty
+                score = node.number_of_troops + 3 - casualty
                 if max_score < score:
                     max_score = score
                     src = node
