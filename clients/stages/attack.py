@@ -16,6 +16,7 @@ def plan_attack(game: GameClient):
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
+    # surprise strategic attack
     max_attack_power, max_path = 0, []
     for st_node in strategic_nodes:
         attack_power, path = get_surprise_danger(gdata, st_node, gdata.player_id, return_max_path=True)
@@ -37,7 +38,7 @@ def plan_attack(game: GameClient):
             max_path = path
 
     if len(max_path) > 0:
-        print('doing strategic attack', file=f)
+        print('doing strategic attack_strategies', file=f)
         game.put_troop(max_path[0].id, remaining_troops)
         gdata.update_game_state()
         game.next_state()
@@ -55,6 +56,7 @@ def plan_attack(game: GameClient):
             gdata.update_game_state()
         return
 
+    # +3 force attack
     expected_casualty = get_expected_casualty()
     max_score, src, tar = 0, None, None
     for node in gdata.nodes:
@@ -78,7 +80,7 @@ def plan_attack(game: GameClient):
             game.put_troop(src.id, troops_to_put)
         gdata.update_game_state()
         game.next_state()
-        print(game.attack(src.id, tar.id, 0, 1), file=f)
+        print(game.attack(src.id, tar.id, fraction=0, move_fraction=0 if src.is_strategic else 1), file=f)
         gdata.update_game_state()
         game.next_state()
         # no moving troops
