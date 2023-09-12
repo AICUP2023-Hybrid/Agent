@@ -45,7 +45,7 @@ def main():
     c_ai = ClientAi(kernel)
 
     # Build Enemy clients
-    c_two = ClientEnemyOne(kernel)
+    c_two = ClientEnemyTwo(kernel)
     c_three = ClientEnemyTwo(kernel)
 
     change_turn(kernel.main_game, c_ai, c_two, c_three)

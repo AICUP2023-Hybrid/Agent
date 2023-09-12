@@ -1,6 +1,7 @@
 from typing import List
 
 import networkx as nx
+import numpy as np
 
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
@@ -68,5 +69,19 @@ class GameData:
             for nei in node.adj_main_map:
                 graph.add_edge(node.id, nei.id,
                                weight=1 + expected_casualty[nei.number_of_troops + nei.number_of_fort_troops])
+        return graph
+
+    def get_passable_board_graph(self, player) -> nx.DiGraph:
+        graph: nx.DiGraph = nx.DiGraph()
+        expected_casualty = get_expected_casualty()
+
+        for node in self.nodes:
+            graph.add_node(node.id)
+        for node in self.nodes:
+            for nei in node.adj_main_map:
+                weight = 1 + expected_casualty[nei.number_of_troops + nei.number_of_fort_troops]
+                if nei.owner in [player, None]:
+                    continue
+                graph.add_edge(node.id, nei.id, weight=weight)
         return graph
 

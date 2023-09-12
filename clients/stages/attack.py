@@ -1,21 +1,101 @@
 from math import floor, ceil
 from typing import List
 
+import networkx as nx
+
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
-from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger, get_normal_attack_danger
+from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger, get_normal_attack_danger, \
+    get_two_way_attack
 from clients.utils.update_details import GameData
 from components.node import Node
+
+f = open(f'log0.txt', 'w')
+
+
+def attack_path(game: GameClient, path):
+    gdata = game.game_data
+
+    for i in range(len(path) - 1):
+        if path[i].owner != gdata.player_id or path[i].number_of_troops < 2:
+            break
+        print(game.attack(path[i].id, path[i + 1].id,0, 1),
+              path[i].id, path[i + 1].id,
+              'troops', path[i].number_of_troops, path[i + 1].number_of_troops,
+              file=f)
+        gdata.update_game_state()
 
 
 def plan_attack(game: GameClient):
     gdata: GameData = game.game_data
-    f = open(f'log{gdata.player_id}.txt', 'a')
+    gdata.update_game_state()
     remaining_troops = gdata.remaining_init[gdata.player_id]
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
-    # surprise strategic attack
+    # surprise two strategic attack
+    if gdata.phase_2_turns > 7 and len(my_strategic) == 2:
+        candidate = None
+        for node_st1 in strategic_nodes:
+            for node_st2 in strategic_nodes:
+                attack_plan = get_two_way_attack(gdata, node_st1, node_st2)
+                if attack_plan is None:
+                    continue
+                if candidate is None or candidate[0] < attack_plan[0]:
+                    candidate = attack_plan
+        if candidate is not None:
+            print('attack two strategic', file=f)
+            t1, t2 = candidate[4], candidate[5]
+            l1, l2 = -candidate[6], -candidate[7]
+            remaining_troops = gdata.remaining_init[gdata.player_id]
+            s1, s2, s, mid = None, None, None, None
+            if candidate[1] == 0:
+                s1: Node = candidate[2]
+                s2: Node = candidate[3]
+                p1, p2 = max(0, l1), max(0, l2)
+                print('needs', l1, l2, file=f)
+                p1 += (remaining_troops - p1 - p2) / 2
+                p1 = int(ceil(p1))
+                p2 += (remaining_troops - p1 - p2)
+                p2 = int(p2)
+                if p1 > 0:
+                    print(game.put_troop(s1.id, p1), s1.id, p1, file=f)
+                if p2 > 0:
+                    print(game.put_troop(s2.id, p2), s2.id, p2, file=f)
+            else:
+                s: Node = candidate[2]
+                mid: Node = candidate[3]
+                if remaining_troops > 0:
+                    print(game.put_troop(s.id, remaining_troops), s.id, remaining_troops, file=f)
+            gdata.update_game_state()
+            game.next_state()
+
+            print('beginning attack', file=f)
+            graph = gdata.get_passable_board_graph(gdata.player_id)
+            if candidate[1] == 0:
+                path1 = [gdata.nodes[x] for x in nx.shortest_path(graph, s1.id, t1.id, weight='weight')]
+                path2 = [gdata.nodes[x] for x in nx.shortest_path(graph, s2.id, t2.id, weight='weight')]
+                attack_path(game, path1)
+                attack_path(game, path2)
+            else:
+                path = [gdata.nodes[x] for x in nx.shortest_path(graph, s.id, mid.id, weight='weight')]
+                attack_path(game, path)
+                path1 = [gdata.nodes[x] for x in nx.shortest_path(graph, mid.id, t1.id, weight='weight')]
+                path2 = [gdata.nodes[x] for x in nx.shortest_path(graph, mid.id, t2.id, weight='weight')]
+                if len(path1) > 1:
+                    next_node = path1[1]
+                    l1p = max(0, l1 - graph.edges[mid.id, next_node.id])
+                    l2p = max(0, l2)
+                    print(game.attack(mid.id, next_node.id, 0, l1p / (l1p + l2p) if l1p + l2p > 0 else 0.5),
+                          'split attack', file=f)
+                    attack_path(game, path1[1:])
+                attack_path(game, path2)
+            game.next_state()
+            # no moving troops
+            game.next_state()
+            return
+
+    # surprise one strategic attack
     max_attack_power, max_path = 0, []
     for st_node in strategic_nodes:
         attack_power, path = get_surprise_danger(gdata, st_node, gdata.player_id, return_max_path=True)
@@ -42,11 +122,7 @@ def plan_attack(game: GameClient):
         gdata.update_game_state()
         game.next_state()
         print([node.id for node in max_path], file=f)
-        for i in range(len(max_path) - 1):
-            if max_path[i].owner != gdata.player_id and max_path[i].number_of_troops < 2:
-                break
-            print(game.attack(max_path[i].id, max_path[i + 1].id, 0, 1), file=f)
-            gdata.update_game_state()
+        attack_path(game, max_path)
         game.next_state()
         # no moving troops
         game.next_state()
