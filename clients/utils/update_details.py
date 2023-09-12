@@ -58,6 +58,7 @@ class GameData:
                     continue
                 self.remaining_init[node.owner] -= node.number_of_troops
         else:
+            self.remaining_init = [0,0,0]
             self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
             n_nodes_belonging = defaultdict(lambda : 0)
             for node in self.nodes:
