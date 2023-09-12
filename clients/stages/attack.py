@@ -49,7 +49,6 @@ def plan_attack(game: GameClient):
             t1, t2 = candidate[4], candidate[5]
             l1, l2 = -candidate[6], -candidate[7]
             remaining_troops = gdata.remaining_init[gdata.player_id]
-            s1, s2, s, mid = None, None, None, None
             if candidate[1] == 0:
                 s1: Node = candidate[2]
                 s2: Node = candidate[3]
@@ -112,8 +111,11 @@ def plan_attack(game: GameClient):
             node.save_version()
             node.owner = gdata.player_id
             node.number_of_troops = 1
-        path[-1].number_of_troops = int((attack_power + 1) * 2 if not gdata.done_fort else attack_power + 1)
+        path[-1].number_of_troops = int(attack_power + 1)
         danger = get_node_danger(gdata, st_node)
+        if danger > 0:
+            path[-1].number_of_troops *= 2
+            danger = get_node_danger(gdata, st_node)
         for node in path:
             node.restore_version()
         if danger > 0 and (len(my_strategic) < 3 or gdata.phase_2_turns <= 7):
@@ -133,8 +135,15 @@ def plan_attack(game: GameClient):
         # no moving troops
         game.next_state()
         if not gdata.done_fort and max_path[-1].owner == gdata.player_id:
-            game.fort(max_path[-1].id, max_path[-1].number_of_troops)
-            gdata.update_game_state()
+            danger = get_node_danger(gdata, max_path[-1])
+            if danger > 0:
+                max_path[-1].save_version()
+                max_path[-1].number_of_troops *= 2
+                danger = get_node_danger(gdata, max_path[-1])
+                max_path[-1].restore_version()
+                if danger <= 0:  # TODO tune this based on the risk
+                    game.fort(max_path[-1].id, max_path[-1].number_of_troops)
+                    gdata.update_game_state()
         return
 
     # +3 force attack
@@ -156,9 +165,8 @@ def plan_attack(game: GameClient):
     if max_score > 0:
         print('doing single attack', file=f)
         troops_to_put = max(0, int(3 - floor(max_score)))
-        print(troops_to_put, src.id, file=f)
         if troops_to_put > 0:
-            game.put_troop(src.id, troops_to_put)
+            print(game.put_troop(src.id, troops_to_put), troops_to_put, src.id, file=f)
         gdata.update_game_state()
         game.next_state()
         print(game.attack(src.id, tar.id, fraction=0, move_fraction=0 if src.is_strategic else 1), file=f)

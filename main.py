@@ -32,13 +32,13 @@ def enable_print():
 
 def main():
     for player in range(3):
-        wins = defaultdict(lambda: 0)
+        wins = [0, 0, 0]
         for i in tqdm(range(100)):
             block_print()
             wp = run_game(player)
             enable_print()
             wins[wp] += 1
-        print(f'results when player turn is {player}: {dict(wins)}')
+        print(f'results when player turn is {player}: {wins}')
 
 
 def run_game(player_turn):
