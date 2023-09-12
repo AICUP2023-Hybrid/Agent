@@ -1,11 +1,13 @@
 from typing import List
 
 import networkx as nx
+import math
 import numpy as np
 
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 from components.node import Node
+from collections import defaultdict
 
 
 class GameData:
@@ -15,6 +17,7 @@ class GameData:
         self.player_cnt = 3
         self.game = game
         self.remaining_init = [35, 35, 35]
+        self.later_added = [0,0,0]
         self.stage = 0
         self.phase_2_turns = 1
         self.done_fort = False
@@ -55,8 +58,19 @@ class GameData:
                     continue
                 self.remaining_init[node.owner] -= node.number_of_troops
         else:
-            self.remaining_init = [0, 0, 0]
             self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
+            n_nodes_belonging = defaultdict(lambda : 0)
+            for node in self.nodes:
+                if node.owner is None:
+                    continue
+                n_nodes_belonging[node.owner] += 1
+            n_strat_belonging = defaultdict(lambda : 0)
+            for node in self.nodes:
+                if node.is_strategic and node.owner is not None:
+                    n_strat_belonging[node.owner] += node.score_of_strategic
+            for i in range(self.player_cnt):
+                self.later_added[i] = (math.floor(n_nodes_belonging[i]/4) +
+                                                n_strat_belonging[i])
             # TODO calculate other players troop count
 
     def get_board_graph(self) -> nx.DiGraph:
