@@ -105,7 +105,7 @@ def plan_attack(game: GameClient):
     for st_node in strategic_nodes:
         attack_power, path = get_surprise_danger(gdata, st_node, gdata.player_id, return_max_path=True)
         path: List[Node]
-        if len(path) == 0:
+        if len(path) == 0 or attack_power < 1:
             continue
         for node in path:
             node.save_version()
