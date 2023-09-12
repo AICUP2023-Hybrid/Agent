@@ -18,6 +18,7 @@ def attack_path(game: GameClient, path):
 
     for i in range(len(path) - 1):
         if path[i].owner != gdata.player_id or path[i].number_of_troops < 2:
+            print('attack chain broke', file=f)
             break
         print(game.attack(path[i].id, path[i + 1].id,0, 1),
               path[i].id, path[i + 1].id,
