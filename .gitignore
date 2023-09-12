@@ -162,3 +162,5 @@ cython_debug/
 log
 result_log
 log*.txt
+test.ipynb
+TEST.ipynb
