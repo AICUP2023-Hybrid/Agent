@@ -49,7 +49,6 @@ def plan_attack(game: GameClient):
             t1, t2 = candidate[4], candidate[5]
             l1, l2 = -candidate[6], -candidate[7]
             remaining_troops = gdata.remaining_init[gdata.player_id]
-            s1, s2, s, mid = None, None, None, None
             if candidate[1] == 0:
                 s1: Node = candidate[2]
                 s2: Node = candidate[3]
@@ -156,9 +155,8 @@ def plan_attack(game: GameClient):
     if max_score > 0:
         print('doing single attack', file=f)
         troops_to_put = max(0, int(3 - floor(max_score)))
-        print(troops_to_put, src.id, file=f)
         if troops_to_put > 0:
-            game.put_troop(src.id, troops_to_put)
+            print(game.put_troop(src.id, troops_to_put), troops_to_put, src.id, file=f)
         gdata.update_game_state()
         game.next_state()
         print(game.attack(src.id, tar.id, fraction=0, move_fraction=0 if src.is_strategic else 1), file=f)
