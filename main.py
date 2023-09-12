@@ -8,48 +8,55 @@ from clients.client_enemy_one import ClientEnemyOne
 from clients.client_enemy_two import ClientEnemyTwo
 from turn_controllers import change_turn
 from collections import defaultdict
-import sys,os
+import sys, os
 from tqdm import tqdm
 
 import json
+
 
 def read_config():
     with open('config.json', 'r') as f:
         config = json.load(f)
     return config
 
+
 # Disable
-def blockPrint():
+def block_print():
     sys.stdout = open(os.devnull, 'w')
 
+
 # Restore
-def enablePrint():
+def enable_print():
     sys.stdout = sys.__stdout__
+
+
 def main():
     wins = defaultdict(lambda: 0)
     for i in tqdm(range(100)):
-        blockPrint()
+        block_print()
         wp = run_game()
-        enablePrint()
+        enable_print()
         wins[wp] += 1
     print(wins)
+
+
 def run_game():
     # read map file
     kernel_main_game = Game()
     # ask player to choose map from the list of maps
     maps = os.listdir('maps')
 
-    ## get the selected map from the player
+    # get the selected map from the player
     selected_map = '3'
 
     while selected_map.isdigit() == False or int(selected_map) >= len(maps) or int(selected_map) < 0:
-        ## show the list of maps from the maps folder
+        # show the list of maps from the maps folder
         print("Choose a map from the list of maps:")
         for i, map in enumerate(maps):
             print(i, '-', map)
         selected_map = input("Enter the number of the map you want to choose: ")
 
-    ## read the selected map
+    # read the selected map
     kernel_main_game.read_map('maps/' + maps[int(selected_map)])
 
     # read config
@@ -59,16 +66,11 @@ def run_game():
     kernel = Kernel(kernel_main_game, kernel_config)
 
     # Build Enemy clients
-    c_two = ClientEnemyOne(kernel)
+    clients = [ClientEnemyOne(kernel), ClientAi(kernel), ClientEnemyTwo(kernel)]
 
-    # Build AI Client
-    c_ai = ClientAi(kernel)
-
-    c_three = ClientEnemyTwo(kernel)
-
-    winning_player = change_turn(kernel.main_game, c_ai, c_two, c_three)
+    winning_player = change_turn(kernel.main_game, *clients)
     return winning_player
+
+
 if __name__ == '__main__':
     main()
-
-
