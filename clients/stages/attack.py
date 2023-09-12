@@ -52,12 +52,17 @@ def plan_attack(game: GameClient):
             if candidate[1] == 0:
                 s1: Node = candidate[2]
                 s2: Node = candidate[3]
-                p1, p2 = max(0, l1), max(0, l2)
+                p1, p2 = 0, 0
                 print('needs', l1, l2, file=f)
-                p1 += (remaining_troops - p1 - p2) / 2
-                p1 = int(ceil(p1))
-                p2 += (remaining_troops - p1 - p2)
-                p2 = int(p2)
+                tmp = remaining_troops
+                while tmp > 0:
+                    if l1 < l2:
+                        p2 += 1
+                        l2 -= 1
+                    else:
+                        p1 += 1
+                        l1 -= 1
+                    tmp -= 1
                 if p1 > 0:
                     print(game.put_troop(s1.id, p1), s1.id, p1, file=f)
                 if p2 > 0:
