@@ -58,21 +58,25 @@ class GameData:
                     continue
                 self.remaining_init[node.owner] -= node.number_of_troops
         else:
-            self.remaining_init = [0,0,0]
+            self.remaining_init = [0, 0, 0]
             self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
-            n_nodes_belonging = defaultdict(lambda : 0)
-            for node in self.nodes:
-                if node.owner is None:
-                    continue
-                n_nodes_belonging[node.owner] += 1
-            n_strat_belonging = defaultdict(lambda : 0)
-            for node in self.nodes:
-                if node.is_strategic and node.owner is not None:
-                    n_strat_belonging[node.owner] += node.score_of_strategic
-            for i in range(self.player_cnt):
-                self.later_added[i] = (math.floor(n_nodes_belonging[i]/4) +
-                                                n_strat_belonging[i])
             # TODO calculate other players troop count
+
+    def update_remaining_troops_by_map(self):
+        n_nodes_belonging = defaultdict(lambda: 0)
+        for node in self.nodes:
+            if node.owner is None:
+                continue
+            n_nodes_belonging[node.owner] += 1
+        n_strategic_belonging = defaultdict(lambda: 0)
+        for node in self.nodes:
+            if node.is_strategic and node.owner is not None:
+                n_strategic_belonging[node.owner] += node.score_of_strategic
+        for i in range(self.player_cnt):
+            if i == self.player_id:
+                continue
+            self.later_added[i] = n_nodes_belonging[i] // 4 + n_strategic_belonging[i]
+            self.remaining_init[i] = self.later_added[i]  # temporary substitute for remaining troops
 
     def get_board_graph(self) -> nx.DiGraph:
         graph: nx.DiGraph = nx.DiGraph()
