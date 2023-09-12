@@ -130,7 +130,7 @@ class Kernel:
 
             if attacker_troops - move_troops < 1:
                 move_troops -= 1
-                attacker_troops += 1
+                # attacker_troops += 1
 
             self.main_game.nodes[attacking_id].number_of_troops = attacker_troops - move_troops
             self.main_game.nodes[target_id].number_of_troops = move_troops

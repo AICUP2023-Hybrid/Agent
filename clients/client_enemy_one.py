@@ -31,6 +31,7 @@ class ClientEnemyOne():
             if owner[i] == -1:
                 print(self.game.put_one_troop(i), "-- putting one troop on", i)
                 return
+        '''
         adj = self.game.get_adj()
         for i in strategic_nodes:
             for j in adj[i]:
@@ -47,9 +48,10 @@ class ClientEnemyOne():
         nodes = list(set(nodes))
         node = random.choice(nodes)
         self.game.put_one_troop(node)
-        print("3-  putting one troop on", node)
+        print("3-  putting one troop on", node)'''
 
     def turn(self):
+        '''
         print(self.game.get_number_of_troops_to_put())
         owner = self.game.get_owners()
         for i in owner.keys():
@@ -112,3 +114,4 @@ class ClientEnemyOne():
             print(self.game.fort(max_node, 3))
             print(self.game.get_number_of_fort_troops())
             self.flag = True
+        '''
