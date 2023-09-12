@@ -111,8 +111,11 @@ def plan_attack(game: GameClient):
             node.save_version()
             node.owner = gdata.player_id
             node.number_of_troops = 1
-        path[-1].number_of_troops = int((attack_power + 1) * 2 if not gdata.done_fort else attack_power + 1)
+        path[-1].number_of_troops = int(attack_power + 1)
         danger = get_node_danger(gdata, st_node)
+        if danger > 0:
+            path[-1].number_of_troops *= 2
+            danger = get_node_danger(gdata, st_node)
         for node in path:
             node.restore_version()
         if danger > 0 and (len(my_strategic) < 3 or gdata.phase_2_turns <= 7):
@@ -132,8 +135,15 @@ def plan_attack(game: GameClient):
         # no moving troops
         game.next_state()
         if not gdata.done_fort and max_path[-1].owner == gdata.player_id:
-            game.fort(max_path[-1].id, max_path[-1].number_of_troops)
-            gdata.update_game_state()
+            danger = get_node_danger(gdata, max_path[-1])
+            if danger > 0:
+                max_path[-1].save_version()
+                max_path[-1].number_of_troops *= 2
+                danger = get_node_danger(gdata, max_path[-1])
+                max_path[-1].restore_version()
+                if danger <= 0:  # TODO tune this based on the risk
+                    game.fort(max_path[-1].id, max_path[-1].number_of_troops)
+                    gdata.update_game_state()
         return
 
     # +3 force attack
