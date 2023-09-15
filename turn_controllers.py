@@ -154,5 +154,6 @@ def change_turn(main_game, c_ai, c_two, c_three):
             main_game.print("end turn: " + datetime.datetime.now().strftime("%H:%M:%S"))
         # check if the game is finished
         is_finished, index, end_type = check_finish(main_game)
+        main_game.visualize()
         if is_finished:
             return index, end_type
