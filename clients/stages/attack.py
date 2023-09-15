@@ -1,3 +1,4 @@
+import json
 from math import floor, ceil
 from typing import List
 
@@ -11,6 +12,7 @@ from clients.utils.update_details import GameData
 from components.node import Node
 
 f = open(f'log0.txt', 'w')
+game_config = json.load(open('config.json', 'r'))
 
 
 def attack_path(game: GameClient, path):
@@ -33,6 +35,10 @@ def plan_attack(game: GameClient):
     remaining_troops = gdata.remaining_init[gdata.player_id]
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
+
+    #is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
+    #if is_last_turn and gdata.player_id == 0:
+    #    for
 
     # surprise two strategic attack
     if gdata.phase_2_turns > 7 and len(my_strategic) == 2:
@@ -145,7 +151,6 @@ def plan_attack(game: GameClient):
         max_path[0].save_version()
         max_path[-1].save_version()
 
-        '''
         if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
             troop_cnt = max_path[-1].number_of_troops
             min_danger, move_back = 1000, None
@@ -160,7 +165,6 @@ def plan_attack(game: GameClient):
                 game.move_troop(max_path[-1].id, max_path[0].id, move_back)
             # TODO if min danger > 0 we can't save both nodes we should probably choose the one with bigger strategic
             #  score
-        '''
 
         max_path[0].restore_version()
         max_path[1].restore_version()

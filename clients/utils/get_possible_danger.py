@@ -46,6 +46,7 @@ def get_targets_by_attacker(gdata: GameData, attacker_id):
 
 
 def get_node_danger(gdata: GameData, node: Node):
+    # return get_relative_strategic_node_danger(gdata, node.owner)[node]
     attack_power = -np.Inf
     for player in range(gdata.player_cnt):
         if player == node.owner:

@@ -33,12 +33,20 @@ def enable_print():
 def main():
     for player in range(3):
         wins = [0, 0, 0]
+        by_score = [0, 0, 0]
+        by_strategic = [0, 0, 0]
         for i in tqdm(range(100)):
             block_print()
-            wp = run_game(player)
+            wp, end_type = run_game(player)
             enable_print()
             wins[wp] += 1
+            if end_type == 'by_score':
+                by_score[wp] += 1
+            else:
+                by_strategic[wp] += 1
         print(f'results when player turn is {player}: {wins}')
+        print(f'by_score results when player turn is {player}: {by_score}')
+        print(f'by_strategic results when player turn is {player}: {by_strategic}')
 
 
 def run_game(player_turn):
@@ -74,8 +82,8 @@ def run_game(player_turn):
         else:
             clients.append(ClientEnemyTwo(kernel))
 
-    winning_player = change_turn(kernel.main_game, *clients)
-    return winning_player
+    winning_player, end_type = change_turn(kernel.main_game, *clients)
+    return winning_player, end_type
 
 
 if __name__ == '__main__':

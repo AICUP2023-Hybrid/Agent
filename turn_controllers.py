@@ -28,7 +28,7 @@ def calculate_score(main_game):
 def check_finish(main_game):
     # check if the game pass the minimum number of turns
     if main_game.turn_number < int(main_game.config["minimum_number_of_turns"]):
-        return False, None
+        return False, None, ''
 
     # find the number of strategic nodes for each player
     players_strategic_nodes_count = []
@@ -48,7 +48,7 @@ def check_finish(main_game):
             scores = calculate_score(main_game)
             scores[i] += sum(scores)
             game_finished(main_game, scores)
-            return True, int(str(i))
+            return True, int(str(i)), 'by_strategic'
     # check if the game is finished
     if main_game.turn_number >= int(main_game.config["number_of_turns"]):
         if main_game.debug:
@@ -57,8 +57,8 @@ def check_finish(main_game):
         print("The game ended due to the completion of the number of turns and player", scores.index(max(scores)),
               "won with a score of:", max(scores))
         game_finished(main_game, scores)
-        return True, scores.index(max(scores))
-    return False, None
+        return True, scores.index(max(scores)), 'by_score'
+    return False, None, ''
 
 
 def game_finished(main_game, score):
@@ -153,6 +153,6 @@ def change_turn(main_game, c_ai, c_two, c_three):
         if main_game.debug:
             main_game.print("end turn: " + datetime.datetime.now().strftime("%H:%M:%S"))
         # check if the game is finished
-        is_finished, index = check_finish(main_game)
+        is_finished, index, end_type = check_finish(main_game)
         if is_finished:
-            return index
+            return index, end_type
