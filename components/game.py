@@ -55,10 +55,15 @@ class Game:
         self.log = {"initialize": self.log_initialize, "turns": {}}
 
         #variables for networkx plt visualization
+        self.node_colors = []
+        self.alpha = []
+        self.node_shapes = []
+        self.node_size = []
         self.flags = {0: "red", 1:"green", 2:"blue"}
         self.DIR_PATH_PIC = "./visualizations/pictures"
         self.G = nx.Graph()
         self.strategic_node_list = []
+        self.non_strategic_node_list = []
         self.pos = None
 
     def update_game_state(self) -> None:
@@ -208,7 +213,7 @@ class Game:
             for v in u.adj_main_map:
                 self.G.add_edge(u.id, v.id)
         self.strategic_node_list = [i for i in range(self.G.number_of_nodes()) if self.node_shapes[i] == "d"]
-
+        self.non_strategic_node_list = [i for i in range(self.G.number_of_nodes()) if self.node_shapes[i] == "o"]
         self.pos = nx.spring_layout(self.G,
                                     k=1.0 * 1 / math.sqrt(self.G.number_of_nodes()),
                                     iterations=100,
@@ -221,7 +226,10 @@ class Game:
     def visualize(self):
         self.update_visualization()
         for shape in ['o', 'd']:
-            nodelist = self.strategic_node_list
+            if shape == 'd':
+                nodelist = self.strategic_node_list
+            else:
+                nodelist = self.non_strategic_node_list
             nx.draw_networkx_nodes(self.G, self.pos,
                                    nodelist=nodelist,
                                    node_size=[self.node_size[i] for i in nodelist],
@@ -233,4 +241,5 @@ class Game:
         if not os.path.exists(self.DIR_PATH_PIC):
             os.makedirs(self.DIR_PATH_PIC)
         file_name_graph = f'{self.DIR_PATH_PIC}/{self.turn_number}'
-        plt.savefig(file_name_graph, dpi=250)
+        plt.savefig(file_name_graph, dpi=50)
+        plt.clf()

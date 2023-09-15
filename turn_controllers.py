@@ -103,7 +103,7 @@ def game_finished(main_game, score):
             debug_log_file.write(main_game.debug_logs)
 
 
-def change_turn(main_game, c_ai, c_two, c_three):
+def change_turn(main_game, c_ai, c_two, c_three, visualize=False):
     while True:
         # increase the turn number and initialize the turn
         player_id = main_game.start_turn()
@@ -154,6 +154,7 @@ def change_turn(main_game, c_ai, c_two, c_three):
             main_game.print("end turn: " + datetime.datetime.now().strftime("%H:%M:%S"))
         # check if the game is finished
         is_finished, index, end_type = check_finish(main_game)
-        main_game.visualize()
+        if visualize:
+            main_game.visualize()
         if is_finished:
             return index, end_type

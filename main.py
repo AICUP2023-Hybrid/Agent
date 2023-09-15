@@ -87,7 +87,7 @@ def run_game(player_turn):
         else:
             clients.append(ClientAi(kernel))
 
-    winning_player, end_type = change_turn(kernel.main_game, *clients)
+    winning_player, end_type = change_turn(kernel.main_game, *clients , visualize=True)
     return winning_player, end_type
 
 
