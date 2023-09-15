@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import networkx as nx
 import numpy as np
 from networkx import NetworkXNoPath
@@ -13,7 +15,7 @@ def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=F
     remaining_troops = gdata.remaining_init[player]
 
     distances = nx.shortest_path_length(graph, target=target.id, weight='weight')
-    max_attack_power = -1000
+    max_attack_power = -np.Inf
     max_path, max_src = [], None
     for src in gdata.nodes:
         if src.owner not in [player, None] or src.id not in distances:
@@ -31,14 +33,42 @@ def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=F
     return max_attack_power
 
 
+def get_targets_by_attacker(gdata: GameData, attacker_id):
+    res = []
+    for node in [node for node in gdata.nodes if node.is_strategic]:
+        if node.owner == attacker_id:
+            continue
+        res.append((
+            get_surprise_danger(gdata, node, attacker_id, include_src_troops=True),
+            node
+        ))
+    return sorted(res, key=lambda x: x[0], reverse=True)
+
+
 def get_node_danger(gdata: GameData, node: Node):
-    attack_power = -1000
+    attack_power = -np.Inf
     for player in range(gdata.player_cnt):
-        if player == gdata.player_id:
+        if player == node.owner:
             continue
         attack_power = max(attack_power, get_surprise_danger(gdata, node, player))
 
     return attack_power  # returns expected amount of troops left after being attacked
+
+
+def get_relative_strategic_node_danger(gdata: GameData, defender_id):
+    node_dangers = defaultdict(lambda: 0)
+    for attacker_id in range(gdata.player_cnt):
+        if attacker_id == defender_id:
+            continue
+        non_defender_danger = 0
+        res = get_targets_by_attacker(gdata, attacker_id)
+        for danger, node in res:
+            if node.owner != defender_id:
+                non_defender_danger = max(danger, non_defender_danger)
+        for danger, node in res:
+            if node.owner == defender_id:
+                node_dangers[node] = max(node_dangers[node], danger - non_defender_danger)
+    return node_dangers
 
 
 def get_two_way_attack(gdata: GameData, node_st1: Node, node_st2: Node):

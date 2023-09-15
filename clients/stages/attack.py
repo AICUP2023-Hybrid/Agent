@@ -20,7 +20,7 @@ def attack_path(game: GameClient, path):
         if path[i].owner != gdata.player_id or path[i].number_of_troops < 2:
             print('attack chain broke', file=f)
             break
-        print(game.attack(path[i].id, path[i + 1].id,0, 1),
+        print(game.attack(path[i].id, path[i + 1].id, 0, 1),
               path[i].id, path[i + 1].id,
               'troops', path[i].number_of_troops, path[i + 1].number_of_troops,
               file=f)
@@ -145,7 +145,8 @@ def plan_attack(game: GameClient):
         max_path[0].save_version()
         max_path[-1].save_version()
 
-        if max_path[0].is_strategic:
+        '''
+        if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
             troop_cnt = max_path[-1].number_of_troops
             min_danger, move_back = 1000, None
             for i in range(1, troop_cnt + 1):
@@ -159,6 +160,8 @@ def plan_attack(game: GameClient):
                 game.move_troop(max_path[-1].id, max_path[0].id, move_back)
             # TODO if min danger > 0 we can't save both nodes we should probably choose the one with bigger strategic
             #  score
+        '''
+
         max_path[0].restore_version()
         max_path[1].restore_version()
 
