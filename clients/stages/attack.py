@@ -8,6 +8,7 @@ from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger, \
     get_two_way_attack
+from clients.utils.maximize_score import maximize_score
 from clients.utils.update_details import GameData
 from components.node import Node
 
@@ -36,9 +37,13 @@ def plan_attack(game: GameClient):
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
-    #is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
-    #if is_last_turn and gdata.player_id == 0:
-    #    for
+    is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
+    if is_last_turn and gdata.player_id == 0:
+        with open('valad.txt', 'a') as rs:
+            print(remaining_troops, len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+            maximize_score(game, rs)
+            print('got them nodes: ', len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+        return
 
     # surprise two strategic attack
     if gdata.phase_2_turns > 7 and len(my_strategic) == 2:
