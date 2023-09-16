@@ -103,7 +103,7 @@ def game_finished(main_game, score):
             debug_log_file.write(main_game.debug_logs)
 
 
-def change_turn(main_game, c_ai, c_two, c_three, visualize=True):
+def change_turn(main_game, c_ai, c_two, c_three, visualize=False):
     while True:
         # increase the turn number and initialize the turn
         player_id = main_game.start_turn()
