@@ -15,9 +15,16 @@
 ## 2: the game started (turns state)
 
 import json
+import math
+import os
+
+import networkx as nx
+from matplotlib import pyplot as plt
+
 from components.player import Player
 from components.node import Node
 from tools.calculate_number_of_troops import calculate_number_of_troops
+
 
 class Game:
     def __init__(self) -> None:
@@ -47,6 +54,19 @@ class Game:
         self.move_troop_done = False  # a boolean that shows if the move_troop is done or not in the current turn
         # the main log file that will saved at the end of the game
         self.log = {"initialize": self.log_initialize, "turns": {}}
+
+        #variable for visualization
+        self.DIR = "./visualizations"
+        self.G = nx.Graph()
+        self.node_colors = []
+        self.alpha = []
+        self.node_shapes =[]
+        self.node_size = []
+        self.strategic_node_list = []
+        self.non_strategic_node_list = []
+        self.pos = []
+        self.flags = {0: "green", 1: "red", 2: "blue", None: "black"}
+        self.pos = None
 
     def update_game_state(self) -> None:
         # update the game state
@@ -91,7 +111,6 @@ class Game:
             id = json_py["strategic_nodes"][i]
             score = json_py["scores_of_strategic_nodes"][i]
             self.nodes[id].score_of_strategic = score
-
     def check_all_players_ready(self) -> None:
         # this function will check if all players are ready to start the game
         # this function will be called after each player sends a ready request
@@ -180,3 +199,47 @@ class Game:
     def remove_node_from_player(self, node_id, player_id):
         self.players[player_id].nodes.remove(self.nodes[node_id])
         self.nodes[node_id].owner = None
+    def initialize_visualization(self):
+        self.node_colors = [self.config['normal_node_color']] * len(self.nodes)
+        self.alpha = [self.config['normal_node_alpha']] * len(self.nodes)
+        self.node_shapes = [self.config['normal_node_shape']] * len(self.nodes)
+        self.node_size = [self.config['normal_node_size']] * len(self.nodes)
+        for i in range(len(self.nodes)):
+            self.G.add_node(i)
+        for _,u in self.nodes.items():
+            if u.is_strategic:
+                self.node_shapes[u.id] = self.config['strategic_node_shape']
+                self.node_size[u.id] = self.config['strategic_node_size']
+                self.alpha[u.id] = self.config['strategic_node_alpha']
+            for v in u.adj_main_map:
+                self.G.add_edge(u.id, v.id)
+        self.strategic_node_list = [i for i in range(self.G.number_of_nodes()) if self.node_shapes[i] == self.config['strategic_node_shape']]
+        self.non_strategic_node_list = [i for i in range(self.G.number_of_nodes()) if self.node_shapes[i] == self.config['normal_node_shape']]
+        self.pos = nx.spring_layout(self.G,
+                                    k=1.0 * 1 / math.sqrt(self.G.number_of_nodes()),
+                                    iterations=100,
+                                    seed=69)
+    def update_visualization(self):
+        for _, u in self.nodes.items():
+            if u.owner is not None:
+                self.node_colors[u.id] = self.flags[u.owner.id]
+
+    def visualize(self, directory):
+        self.update_visualization()
+
+        for shape in [self.config['normal_node_shape'], self.config['strategic_node_shape']]:
+            nodelist = [i for i in range(len(self.node_shapes)) if self.node_shapes[i] == shape]
+            nx.draw_networkx_nodes(
+                self.G, self.pos,
+                nodelist=nodelist,
+                node_size=[self.node_size[i] for i in nodelist],
+                node_shape=shape,
+                node_color=[self.node_colors[i] for i in nodelist],
+                alpha=[self.alpha[i] for i in nodelist],
+            )
+        nx.draw_networkx_edges(self.G, self.pos)
+        if not os.path.exists(f"{self.DIR}/{directory}"):
+            os.makedirs(f"{self.DIR}/{directory}")
+        file_name_graph = f'{self.DIR}/{directory}/{self.turn_number}'
+        plt.savefig(file_name_graph, dpi=50)
+        plt.clf()

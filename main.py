@@ -1,9 +1,12 @@
 # author: Vahid Ghafourian
 # Date: 2023/09/06
+import math
 
 from Kernel import Kernel
 from components.game import Game
 from clients.client_ai import ClientAi
+import networkx as nx
+import matplotlib.pyplot as plt
 from clients.client_enemy_one import ClientEnemyOne
 from clients.client_enemy_two import ClientEnemyTwo
 from turn_controllers import change_turn
@@ -31,11 +34,12 @@ def enable_print():
 
 
 def main():
-    for player in range(3):
+    n_iterations = 1
+    for player in range(1):
         wins = [0, 0, 0]
         by_score = [0, 0, 0]
         by_strategic = [0, 0, 0]
-        for i in tqdm(range(100)):
+        for i in tqdm(range(n_iterations)):
             block_print()
             wp, end_type = run_game(player)
             enable_print()
@@ -74,15 +78,16 @@ def run_game(player_turn):
     # Build Kernel
     kernel = Kernel(kernel_main_game, kernel_config)
 
-    # Build Enemy clients
+    #Build Enemy clients
     clients = []
     for i in range(3):
         if player_turn == i:
             clients.append(ClientAi(kernel))
         else:
-            clients.append(ClientEnemyTwo(kernel))
+            clients.append(ClientAi(kernel))
 
-    winning_player, end_type = change_turn(kernel.main_game, *clients)
+    winning_player, end_type = change_turn(kernel.main_game, *clients,
+                                           visualize=True)
     return winning_player, end_type
 
 

@@ -162,14 +162,21 @@ def plan_attack(game: GameClient):
             for i in range(1, troop_cnt + 1):
                 max_path[0].number_of_troops = troop_cnt - i + 1
                 max_path[-1].number_of_troops = i if gdata.done_fort else i * 2
-                danger = max(get_node_danger(gdata, max_path[0]), get_node_danger(gdata, max_path[-1]))
+
+                src_strategic_danger = get_node_danger(gdata, max_path[0])
+                target_strategic_danger = get_node_danger(gdata, max_path[-1])
+
+                danger = max(src_strategic_danger,target_strategic_danger)
                 if danger < min_danger:
                     min_danger = danger
                     move_back = troop_cnt - i
             if min_danger <= 0 < move_back:
                 game.move_troop(max_path[-1].id, max_path[0].id, move_back)
-            # TODO if min danger > 0 we can't save both nodes we should probably choose the one with bigger strategic
-            #  score
+            # Based on higher score
+            if min_danger > 0:
+                if max_path[0].score_of_strategic > max_path[-1].score_of_strategic:
+                    game.move_troop(max_path[-1].id, max_path[0].id, troop_cnt - 1)
+
 
         max_path[0].restore_version()
         max_path[1].restore_version()
