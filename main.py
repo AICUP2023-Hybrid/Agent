@@ -39,21 +39,26 @@ def main():
         wins = [0, 0, 0]
         by_score = [0, 0, 0]
         by_strategic = [0, 0, 0]
+        losses_list = []
         for i in tqdm(range(n_iterations)):
             block_print()
-            wp, end_type = run_game(player)
+            wp, end_type = run_game(player, f'p{player}-game{i}.gif')
             enable_print()
             wins[wp] += 1
             if end_type == 'by_score':
                 by_score[wp] += 1
             else:
                 by_strategic[wp] += 1
-        print(f'results when player turn is {player}: {wins}')
-        print(f'by_score results when player turn is {player}: {by_score}')
-        print(f'by_strategic results when player turn is {player}: {by_strategic}')
+            if wp != player:
+                losses_list.append(i)
+        print(f'player turn: {player}')
+        print(f'lost games: {losses_list}')
+        print(f'wins: {wins}')
+        print(f'by_score: {by_score}')
+        print(f'by_strategic: {by_strategic}')
 
 
-def run_game(player_turn):
+def run_game(player_turn, game_vis_file_name=None):
     # read map file
     kernel_main_game = Game()
     # ask player to choose map from the list of maps
@@ -87,8 +92,9 @@ def run_game(player_turn):
             clients.append(ClientEnemyTwo(kernel))
 
     winning_player, end_type = change_turn(kernel.main_game, *clients,
-                                           visualize=True)
-    kernel.main_game.save_gif('test.gif')
+                                           visualize=game_vis_file_name is not None)
+    if game_vis_file_name:
+        kernel.main_game.save_gif(game_vis_file_name)
     return winning_player, end_type
 
 
