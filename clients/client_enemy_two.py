@@ -112,3 +112,6 @@ class ClientEnemyTwo():
             print(self.game.fort(max_node, 3))
             print(self.game.get_number_of_fort_troops())
             self.flag = True
+    @staticmethod
+    def __name__():
+        return "Random AF"

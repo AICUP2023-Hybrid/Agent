@@ -34,3 +34,7 @@ class ClientAi:
 
     def get_game(self):
         return self.game
+
+    @staticmethod
+    def __name__():
+        return "Aggressive Chad"

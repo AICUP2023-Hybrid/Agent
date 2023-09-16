@@ -1,6 +1,7 @@
 # author: Vahid Ghafourian
 # Date: 2023/09/06
 import math
+from typing import List, Any
 
 from Kernel import Kernel
 from components.game import Game
@@ -33,37 +34,22 @@ def enable_print():
     sys.stdout = sys.__stdout__
 
 
-def main():
-    n_iterations = 1
-    for player in range(1):
-        wins = [0, 0, 0]
-        by_score = [0, 0, 0]
-        by_strategic = [0, 0, 0]
-        losses_list = []
-        for i in tqdm(range(n_iterations)):
-            block_print()
-            wp, end_type = run_game(player, f'p{player}-game{i}')
-            enable_print()
-            wins[wp] += 1
-            if end_type == 'by_score':
-                by_score[wp] += 1
-            else:
-                by_strategic[wp] += 1
-            if wp != player:
-                losses_list.append(i)
-        print(f'player turn: {player}')
-        print(f'lost games: {losses_list}')
-        print(f'wins: {wins}')
-        print(f'by_score: {by_score}')
-        print(f'by_strategic: {by_strategic}')
+def get_clients(kernel, player_turn: int) -> List[Any]:
+    # Build Enemy clients
+    clients = []
+    for i in range(3):
+        if player_turn == i:
+            clients.append(ClientAi(kernel))
+        else:
+            clients.append(ClientEnemyTwo(kernel))
+    return clients
 
 
-def run_game(player_turn, game_vis_file_name=None):
-    # read map file
-    kernel_main_game = Game()
+def get_kernel():
     # ask player to choose map from the list of maps
     maps = os.listdir('maps')
 
+    kernel_main_game = Game()
     # get the selected map from the player
     selected_map = '3'
 
@@ -81,16 +67,40 @@ def run_game(player_turn, game_vis_file_name=None):
     kernel_config = read_config()
 
     # Build Kernel
-    kernel = Kernel(kernel_main_game, kernel_config)
+    return Kernel(kernel_main_game, kernel_config)
 
-    # Build Enemy clients
-    clients = []
-    for i in range(3):
-        if player_turn == i:
-            clients.append(ClientAi(kernel))
-        else:
-            clients.append(ClientEnemyTwo(kernel))
 
+def main():
+    n_iterations = 100
+    for player in range(3):
+        wins = [0, 0, 0]
+        by_score = [0, 0, 0]
+        by_strategic = [0, 0, 0]
+        losses_list = []
+        for i in tqdm(range(n_iterations)):
+            block_print()
+            # Creating and running game
+            kernel = get_kernel()
+            clients = get_clients(kernel, player)
+            wp, end_type = run_game(kernel, clients)
+
+            enable_print()
+            wins[wp] += 1
+            if end_type == 'by_score':
+                by_score[wp] += 1
+            else:
+                by_strategic[wp] += 1
+            if wp != player:
+                losses_list.append(i)
+        print(f'player turn: {player}')
+        print(f'lost games: {losses_list}')
+        print(f'player names: {", ".join([client.__name__() for client in clients])}')
+        print(f'wins: {wins}')
+        print(f'by_score: {by_score}')
+        print(f'by_strategic: {by_strategic}')
+
+
+def run_game(kernel, clients, game_vis_file_name=None):
     winning_player, end_type = change_turn(kernel.main_game, *clients,
                                            visualize=game_vis_file_name is not None)
     if game_vis_file_name:
