@@ -70,13 +70,15 @@ class Game:
         self.pos = None
         self.labels = {}
         self.legend_elements = [
+            Line2D([0], [0], marker='>', color='w', label='Turn 0', markerfacecolor='black', markersize=10),
+            Line2D([0], [0], marker='>', color='w', label='Round 0', markerfacecolor='black', markersize=10),
+
             Line2D([0], [0], marker='o', color='w', label='Player 1', markerfacecolor='red', markersize=15),
             Line2D([0], [0], marker='o', color='w', label='Player 2', markerfacecolor='blue', markersize=15),
             Line2D([0], [0], marker='o', color='w', label='Player 3', markerfacecolor='green', markersize=15),
             Line2D([0], [0], marker='o', color='w', label='Neutral', markerfacecolor='black', markersize=15)
         ]
         self.frames = []
-
     def update_game_state(self) -> None:
         # update the game state
         # this update will happen at the beginning of each turn
@@ -257,13 +259,16 @@ class Game:
                                 font_color="white")
         plt.legend(handles=self.legend_elements,
                    bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        # plt.savefig(dpi=self.config['dpi'],
-        #             bbox_inches='tight')
         nx.draw_networkx_labels(
             self.G, self.pos, self.labels,
             font_size=8,
             font_color="white"
         )
+        self.legend_elements[0].set_label(f'Turn {self.turn_number}')
+        self.legend_elements[1].set_label(f'Round {math.ceil(self.turn_number/3)}')
+        if self.turn_number == 1:
+            plt.savefig(self.config["visualization_folder"],dpi=self.config['dpi'],
+                        bbox_inches='tight')
         fig = plt.gcf()
         fig.tight_layout()
         fig.canvas.draw()
