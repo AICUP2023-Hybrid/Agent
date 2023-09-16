@@ -71,8 +71,8 @@ def get_kernel():
 
 
 def main():
-    n_iterations = 100
-    for player in range(3):
+    n_iterations = 1
+    for player in range(1):
         wins = [0, 0, 0]
         by_score = [0, 0, 0]
         by_strategic = [0, 0, 0]
