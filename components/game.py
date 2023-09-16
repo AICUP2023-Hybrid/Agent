@@ -76,8 +76,20 @@ class Game:
             Line2D([0], [0], marker='>', color='w', label='Round 0', markerfacecolor='black', markersize=10),
 
             Line2D([0], [0], marker='o', color='w', label='Player 1', markerfacecolor='red', markersize=15),
+            Line2D([0], [0], marker='.', color='w', label='0', markerfacecolor='red', markersize=8),
+            Line2D([0], [0], marker='X', color='w', label='0', markerfacecolor='red', markersize=8),
+            Line2D([0], [0], marker='P', color='w', label='35', markerfacecolor='red', markersize=8),
+
             Line2D([0], [0], marker='o', color='w', label='Player 2', markerfacecolor='blue', markersize=15),
+            Line2D([0], [0], marker='.', color='w', label='0', markerfacecolor='blue', markersize=8),
+            Line2D([0], [0], marker='X', color='w', label='0', markerfacecolor='blue', markersize=8),
+            Line2D([0], [0], marker='P', color='w', label='35', markerfacecolor='blue', markersize=8),
+
             Line2D([0], [0], marker='o', color='w', label='Player 3', markerfacecolor='green', markersize=15),
+            Line2D([0], [0], marker='.', color='w', label='0', markerfacecolor='green', markersize=8),
+            Line2D([0], [0], marker='X', color='w', label='0', markerfacecolor='green', markersize=8),
+            Line2D([0], [0], marker='P', color='w', label='35', markerfacecolor='green', markersize=8),
+
             Line2D([0], [0], marker='o', color='w', label='Neutral', markerfacecolor='black', markersize=15)
         ]
         self.frames = []
@@ -260,10 +272,46 @@ class Game:
         nx.draw_networkx_labels(self.G, self.pos, self.labels,
                                 font_size=8,
                                 font_color="white")
+
+        #Turn, Round, and Winner index
         self.legend_elements[1].set_label(f'Turn {self.turn_number}')
         self.legend_elements[2].set_label(f'Round {math.ceil(self.turn_number / 3)}')
         if is_finished:
             self.legend_elements[0].set_label(f'Winner: P{index}')
+
+        #Current all troops on map
+        normal_troops_player_0 = self.players[0].get_normal_troops()
+        normal_troops_player_1 = self.players[1].get_normal_troops()
+        normal_troops_player_2 = self.players[2].get_normal_troops()
+        fort_troops_player_0 = self.players[0].get_fort_troops()
+        fort_troops_player_1 = self.players[1].get_fort_troops()
+        fort_troops_player_2 = self.players[2].get_fort_troops()
+        self.legend_elements[4].set_label(f"{normal_troops_player_1} + {fort_troops_player_1}")
+        self.legend_elements[8].set_label(f"{normal_troops_player_2} + {fort_troops_player_2}")
+        self.legend_elements[12].set_label(f"{normal_troops_player_0} + {fort_troops_player_0}")
+
+        #Points gain
+        normal_point_player_0 = self.players[0].get_normal_point()
+        normal_point_player_1 = self.players[1].get_normal_point()
+        normal_point_player_2 = self.players[2].get_normal_point()
+        strategical_point_player_0 = self.players[0].get_strat_point()
+        strategical_point_player_1 = self.players[1].get_strat_point()
+        strategical_point_player_2 = self.players[2].get_strat_point()
+        label_1 = (f"{strategical_point_player_1} + {normal_point_player_1} = "
+                   f"{strategical_point_player_1 + normal_point_player_1}")
+        label_2 = (f"{strategical_point_player_2} + {normal_point_player_2} = "
+                   f"{strategical_point_player_2 + normal_point_player_2}")
+        label_3 = (f"{strategical_point_player_0} + {normal_point_player_0} = "
+                   f"{strategical_point_player_0 + normal_point_player_0}")
+        self.legend_elements[5].set_label(label_1)
+        self.legend_elements[9].set_label(label_2)
+        self.legend_elements[13].set_label(label_3)
+
+        # Troops to put
+        self.legend_elements[6].set_label(f"{self.players[1].number_of_troops_to_place}")
+        self.legend_elements[10].set_label(f"{self.players[2].number_of_troops_to_place}")
+        self.legend_elements[14].set_label(f"{self.players[0].number_of_troops_to_place}")
+
         plt.legend(handles=self.legend_elements,
                    bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         nx.draw_networkx_labels(
@@ -284,14 +332,15 @@ class Game:
     def save_gif(self, file_name):
         if not os.path.exists(self.config["visualization_folder"]):
             os.mkdir(self.config["visualization_folder"])
+        self.frames[-1].save(f'{self.config["visualization_folder"]}/{file_name}-ending.png')
         self.frames[0].save(
-            f'{self.config["visualization_folder"]}/{file_name}',
+            f'{self.config["visualization_folder"]}/{file_name}.gif',
             save_all=True,
-            append_images=self.frames[1:],  # append rest of the images
-            duration=1000,  # in milliseconds
+            append_images=self.frames[1:] + self.frames[:1],  # append rest of the images
+            duration=[10000 if i >= len(self.frames) - 1 else 1000 for i in range(len(self.frames) + 1)],  # in milliseconds
             loop=0
         )
 
-    def save_mp4(self, gif_file_name, mp4_file_name):
-        clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{gif_file_name}')
-        clip.write_videofile(f'{self.config["visualization_folder"]}/{mp4_file_name}')
+    def save_mp4(self, file_name):
+        clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{file_name}.gif')
+        clip.write_videofile(f'{self.config["visualization_folder"]}/{file_name}.mp4')
