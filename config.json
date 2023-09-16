@@ -5,8 +5,8 @@
     "client_port_start": 2000,
     "turn_time": 3,
     "init_time": 0.7,
-    "number_of_turns": 10,
-    "minimum_number_of_turns": 10,
+    "number_of_turns": 165,
+    "minimum_number_of_turns": 126,
     "initial_troop": 35,
     "timeout": 1,
     "number_of_strategic_nodes_to_win": 4,
@@ -14,5 +14,13 @@
     "debug": true,
     "debug_dice": true,
     "fort_coef": 2,
-    "minimum_troops_per_turn": 3
+    "minimum_troops_per_turn": 3,
+    "normal_node_size": 100,
+    "strategic_node_size": 200,
+    "normal_node_alpha": 1.0,
+    "strategic_node_alpha": 1.0,
+    "normal_node_shape": "o",
+    "strategic_node_shape": "d",
+    "normal_node_color": "black",
+    "dpi": 100
 }

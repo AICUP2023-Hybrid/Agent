@@ -78,7 +78,6 @@ def run_game(player_turn):
     # Build Kernel
     kernel = Kernel(kernel_main_game, kernel_config)
 
-
     #Build Enemy clients
     clients = []
     for i in range(3):
@@ -87,7 +86,8 @@ def run_game(player_turn):
         else:
             clients.append(ClientAi(kernel))
 
-    winning_player, end_type = change_turn(kernel.main_game, *clients , visualize=True)
+    winning_player, end_type = change_turn(kernel.main_game, *clients,
+                                           visualize=True)
     return winning_player, end_type
 
 
