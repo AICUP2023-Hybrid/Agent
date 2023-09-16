@@ -187,15 +187,15 @@ class Game:
             # calculate the number of troops that the player get at the beginning of this turn
             self.player_turn.number_of_troops_to_place += calculate_number_of_troops(player_id, self)
             # initialize the log variables
-            ## the log of the node owner at the beginning of each turn
+            # the log of the node owner at the beginning of each turn
             self.log_node_owner = [i.owner.id if i.owner is not None else -1 for i in self.nodes.values()]
-            ## the log of the number of troops at the beginning of each turn
+            # the log of the number of troops at the beginning of each turn
             self.log_troop_count = [i.number_of_troops for i in self.nodes.values()]
-            ## clear the log of the number of troops that are put on the map at each turn
+            # clear the log of the number of troops that are put on the map at each turn
             self.log_put_troop = []
-            ## clear the log of the attacks at each turn
+            # clear the log of the attacks at each turn
             self.log_attack = []
-            ## clear the log of the move_troop at each turn
+            # clear the log of the move_troop at each turn
             self.log_fortify = {}
 
         return player_id
@@ -344,3 +344,4 @@ class Game:
     def save_mp4(self, file_name):
         clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{file_name}.gif')
         clip.write_videofile(f'{self.config["visualization_folder"]}/{file_name}.mp4')
+        os.remove(f'{self.config["visualization_folder"]}/{file_name}.gif')

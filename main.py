@@ -62,7 +62,7 @@ def get_kernel():
 
     kernel_main_game = Game()
     # get the selected map from the player
-    selected_map = str(random.choice(list(range(1,5))))
+    selected_map = '3'  # str(random.choice(list(range(1, 5))))
 
     while selected_map.isdigit() is False or int(selected_map) >= len(maps) or int(selected_map) < 0:
         # show the list of maps from the maps folder
@@ -95,29 +95,44 @@ def do(i):
     enable_print()
     return wp, end_type, [client.__name__() for client in clients]
 
+
 def main():
-    n_iterations = 5000
-    wins_by_pos = defaultdict(lambda: [0, 0, 0])
+    n_iterations = 100
     wins = defaultdict(lambda: 0)
-    by_score = defaultdict(lambda: 0)
-    by_strategic = defaultdict(lambda: 0)
-    played = defaultdict(lambda: 0)
+    total_by_pos = defaultdict(lambda: [0, 0, 0])
+    wins_by_pos = defaultdict(lambda: [0, 0, 0])
+    by_score = defaultdict(lambda: [0, 0, 0])
+    by_strategic = defaultdict(lambda: [0, 0, 0])
     losses_list = []
-    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=24):
+    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=8):
         wins[client_names[wp]] += 1
         wins_by_pos[client_names[wp]][wp] += 1
         if end_type == 'by_score':
-            by_score[client_names[wp]] += 1
+            by_score[client_names[wp]][wp] += 1
         else:
-            by_strategic[client_names[wp]] += 1
-        for client_name in client_names:
-            played[client_name] += 1
+            by_strategic[client_names[wp]][wp] += 1
+        for pos, client_name in enumerate(client_names):
+            total_by_pos[client_name][pos] += 1
 
-    print(f'lost games: {losses_list}')
     print(f'---wins---\n{get_score_by_client(wins)}')
-    print(f'---wins by pos---\n{get_score_by_client(wins_by_pos)}')
-    print(f'---by score---\n{get_score_by_client(by_score)}')
-    print(f'---by strategic---\n{get_score_by_client(by_strategic)}')
+    print('---by player results---')
+    client_names = [item[0] for item in total_by_pos.items()]
+    win_percentage_by_pos = {
+        name: [round(wins_by_pos[name][i] / total_by_pos[name][i], ndigits=3) for i in range(3)]
+        for name in client_names
+    }
+    print("{:<15} {:<20} {:<20} {:<20}".format(*([''] + client_names)))
+    for row_name, dct in [
+        ('wins', wins_by_pos), ('by_score', by_score),
+        ('by_strategic', by_strategic), ('total', total_by_pos),
+        ('win_percentage', win_percentage_by_pos)
+    ]:
+        print("{:<15} {:<20} {:<20} {:<20}".format(
+            *([row_name] + [str(dct[name]) for name in client_names])
+        ))
+    # print(f'---wins by pos---\n{get_score_by_client(wins_by_pos)}')
+    # print(f'---by score---\n{get_score_by_client(by_score)}')
+    # print(f'---by strategic---\n{get_score_by_client(by_strategic)}')
 
 
 def run_game(kernel, clients, game_vis_file_name=None):
