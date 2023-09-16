@@ -82,7 +82,7 @@ def main():
             # Creating and running game
             kernel = get_kernel()
             clients = get_clients(kernel, player)
-            wp, end_type = run_game(kernel, clients)
+            wp, end_type = run_game(kernel, clients, game_vis_file_name=f'p{player}-game{i}')
 
             enable_print()
             wins[wp] += 1
@@ -104,8 +104,8 @@ def run_game(kernel, clients, game_vis_file_name=None):
     winning_player, end_type = change_turn(kernel.main_game, *clients,
                                            visualize=game_vis_file_name is not None)
     if game_vis_file_name:
-        kernel.main_game.save_gif(f'{game_vis_file_name}.gif')
-        kernel.main_game.save_mp4(f'{game_vis_file_name}.gif', f'{game_vis_file_name}.mp4')
+        kernel.main_game.save_gif(game_vis_file_name)
+        kernel.main_game.save_mp4(game_vis_file_name)
     return winning_player, end_type
 
 

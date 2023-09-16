@@ -280,14 +280,15 @@ class Game:
     def save_gif(self, file_name):
         if not os.path.exists(self.config["visualization_folder"]):
             os.mkdir(self.config["visualization_folder"])
+        self.frames[-1].save(f'{self.config["visualization_folder"]}/{file_name}-ending.png')
         self.frames[0].save(
-            f'{self.config["visualization_folder"]}/{file_name}',
+            f'{self.config["visualization_folder"]}/{file_name}.gif',
             save_all=True,
-            append_images=self.frames[1:],  # append rest of the images
-            duration=400,  # in milliseconds
+            append_images=self.frames[1:] + self.frames[:1],  # append rest of the images
+            duration=[10000 if i >= len(self.frames) - 1 else 1000 for i in range(len(self.frames) + 1)],  # in milliseconds
             loop=0
         )
 
-    def save_mp4(self, gif_file_name, mp4_file_name):
-        clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{gif_file_name}')
-        clip.write_videofile(f'{self.config["visualization_folder"]}/{mp4_file_name}')
+    def save_mp4(self, file_name):
+        clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{file_name}.gif')
+        clip.write_videofile(f'{self.config["visualization_folder"]}/{file_name}.mp4')
