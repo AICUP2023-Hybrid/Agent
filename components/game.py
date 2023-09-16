@@ -20,7 +20,7 @@ import os
 
 import networkx as nx
 from matplotlib import pyplot as plt
-
+from matplotlib.lines import Line2D
 from components.player import Player
 from components.node import Node
 from tools.calculate_number_of_troops import calculate_number_of_troops
@@ -68,6 +68,12 @@ class Game:
         self.flags = {0: "green", 1: "red", 2: "blue", None: "black"}
         self.pos = None
         self.labels = {}
+        self.legend_elements = [
+            Line2D([0], [0], marker='o', color='w', label='Player 1', markerfacecolor='red', markersize=15),
+            Line2D([0], [0], marker='o', color='w', label='Player 2', markerfacecolor='blue', markersize=15),
+            Line2D([0], [0], marker='o', color='w', label='Player 3', markerfacecolor='green', markersize=15),
+            Line2D([0], [0], marker='o', color='w', label='Neutral', markerfacecolor='black', markersize=15)
+        ]
 
     def update_game_state(self) -> None:
         # update the game state
@@ -245,5 +251,9 @@ class Game:
         if not os.path.exists(f"{self.DIR}/{directory}"):
             os.makedirs(f"{self.DIR}/{directory}")
         file_name_graph = f'{self.DIR}/{directory}/{self.turn_number}'
-        plt.savefig(file_name_graph, dpi=50)
+
+        plt.legend(handles=self.legend_elements,
+                   bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        plt.savefig(file_name_graph, dpi=self.config['dpi'],
+                    bbox_inches='tight')
         plt.clf()
