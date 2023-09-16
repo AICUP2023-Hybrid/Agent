@@ -25,6 +25,7 @@ from components.player import Player
 from components.node import Node
 from tools.calculate_number_of_troops import calculate_number_of_troops
 
+
 class Game:
     def __init__(self) -> None:
         self.debug_logs = ""
@@ -53,13 +54,6 @@ class Game:
         self.move_troop_done = False  # a boolean that shows if the move_troop is done or not in the current turn
         # the main log file that will saved at the end of the game
         self.log = {"initialize": self.log_initialize, "turns": {}}
-
-        #variables for networkx plt visualization
-        self.flags = {0: "red", 1:"green", 2:"blue"}
-        self.DIR_PATH_PIC = "./visualizations/pictures"
-        self.G = nx.Graph()
-        self.strategic_node_list = []
-        self.pos = None
 
     def update_game_state(self) -> None:
         # update the game state
@@ -105,7 +99,6 @@ class Game:
             score = json_py["scores_of_strategic_nodes"][i]
             self.nodes[id].score_of_strategic = score
 
-        self.initialize_visualization()
     def check_all_players_ready(self) -> None:
         # this function will check if all players are ready to start the game
         # this function will be called after each player sends a ready request
@@ -195,42 +188,40 @@ class Game:
         self.players[player_id].nodes.remove(self.nodes[node_id])
         self.nodes[node_id].owner = None
 
-    def initialize_visualization(self):
-        self.node_colors = ["black"] * len(self.nodes)
-        self.alpha = [0.6] * len(self.nodes)
-        self.node_shapes = ["o"] * len(self.nodes)
-        self.node_size = [100] * len(self.nodes)
-        for _, u in self.nodes.items():
-            if u.is_strategic:
-                self.node_shapes[u.id] = "d"
-                self.node_size[u.id] = 200
-                self.alpha[u.id] = 0.9
-            for v in u.adj_main_map:
-                self.G.add_edge(u.id, v.id)
-        self.strategic_node_list = [i for i in range(self.G.number_of_nodes()) if self.node_shapes[i] == "d"]
-
-        self.pos = nx.spring_layout(self.G,
-                                    k=1.0 * 1 / math.sqrt(self.G.number_of_nodes()),
-                                    iterations=100,
-                                    seed=69)
-
-    def update_visualization(self):
-        for _, u in self.nodes.items():
-            if u.owner is not None:
-                self.node_colors[u.owner.id] = self.flags[u.owner.id]
     def visualize(self):
-        self.update_visualization()
+        flags = {0: "red", 1: "green", 2: "blue", None: "black"}
+        nodes = [node for _, node in sorted(self.nodes.items(), key=lambda x: int(x[0]))]
+        node_colors = [flags[node.owner.id if node.owner else None] for node in nodes]
+        alphas = [0.9 if node.is_strategic else 0.6 for node in nodes]
+        node_shapes = ["d" if node.is_strategic else "o" for node in nodes]
+        node_sizes = [200 if node.is_strategic else 100 for node in nodes]
+        graph = nx.Graph()
+        for node in nodes:
+            graph.add_node(node.id)
+        for u in nodes:
+            for v in u.adj_main_map:
+                graph.add_edge(u.id, v.id)
+
+        pos = nx.spring_layout(
+            graph,
+            k=1.0 * 1 / math.sqrt(graph.number_of_nodes()),
+            iterations=100,
+            seed=69
+        )
+
         for shape in ['o', 'd']:
-            nodelist = self.strategic_node_list
-            nx.draw_networkx_nodes(self.G, self.pos,
-                                   nodelist=nodelist,
-                                   node_size=[self.node_size[i] for i in nodelist],
-                                   node_shape=shape,
-                                   node_color=[self.node_colors[i] for i in nodelist],
-                                   alpha=[self.alpha[i] for i in nodelist],
-                                   )
-        nx.draw_networkx_edges(self.G, self.pos)
-        if not os.path.exists(self.DIR_PATH_PIC):
-            os.makedirs(self.DIR_PATH_PIC)
-        file_name_graph = f'{self.DIR_PATH_PIC}/{self.turn_number}'
-        plt.savefig(file_name_graph, dpi=250)
+            nodelist = [i for i in range(len(node_shapes)) if node_shapes[i] == shape]
+            nx.draw_networkx_nodes(
+                graph, pos,
+                nodelist=nodelist,
+                node_size=[node_sizes[i] for i in nodelist],
+                node_shape=shape,
+                node_color=[node_colors[i] for i in nodelist],
+                alpha=[alphas[i] for i in nodelist],
+            )
+        nx.draw_networkx_edges(graph, pos)
+        if not os.path.exists("./visualizations/pictures"):
+            os.makedirs("./visualizations/pictures")
+        file_name_graph = f'./visualizations/pictures/{self.turn_number}'
+        plt.savefig(file_name_graph, dpi=50)
+        plt.clf()
