@@ -37,14 +37,6 @@ def plan_attack(game: GameClient):
     strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
-    is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
-    if is_last_turn:
-        with open('valad.txt', 'a') as rs:
-            print(remaining_troops, len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
-            maximize_score(game, rs)
-            print('got them nodes: ', len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
-        return
-
     # surprise two strategic attack
     if gdata.phase_2_turns > 7 and len(my_strategic) == 2:
         candidate = None
@@ -110,6 +102,14 @@ def plan_attack(game: GameClient):
             # no moving troops
             game.next_state()
             return
+
+    is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
+    if is_last_turn:
+        with open('valad.txt', 'a') as rs:
+            print(remaining_troops, len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+            maximize_score(game, rs)
+            print('got them nodes: ', len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+        return
 
     # surprise one strategic attack
     max_attack_power, max_path = 0, []
