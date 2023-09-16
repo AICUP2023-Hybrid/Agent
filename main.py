@@ -116,9 +116,9 @@ def main():
 
     print(f'---wins---\n{get_score_by_client(wins)}')
     print('---by player results---')
-    client_names = [item[0] for item in total_by_pos.items()]
+    client_names = sorted([item[0] for item in total_by_pos.items()])
     win_percentage_by_pos = {
-        name: [round(wins_by_pos[name][i] / total_by_pos[name][i], ndigits=3) for i in range(3)]
+        name: [round(wins_by_pos[name][i] / total_by_pos[name][i], ndigits=2) for i in range(3)]
         for name in client_names
     }
     print("{:<15} {:<20} {:<20} {:<20}".format(*([''] + client_names)))
