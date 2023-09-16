@@ -130,9 +130,6 @@ def main():
         print("{:<15} {:<20} {:<20} {:<20}".format(
             *([row_name] + [str(dct[name]) for name in client_names])
         ))
-    # print(f'---wins by pos---\n{get_score_by_client(wins_by_pos)}')
-    # print(f'---by score---\n{get_score_by_client(by_score)}')
-    # print(f'---by strategic---\n{get_score_by_client(by_strategic)}')
 
 
 def run_game(kernel, clients, game_vis_file_name=None):
