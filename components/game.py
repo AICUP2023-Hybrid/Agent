@@ -79,6 +79,7 @@ class Game:
             Line2D([0], [0], marker='o', color='w', label='Neutral', markerfacecolor='black', markersize=15)
         ]
         self.frames = []
+
     def update_game_state(self) -> None:
         # update the game state
         # this update will happen at the beginning of each turn
@@ -265,9 +266,9 @@ class Game:
             font_color="white"
         )
         self.legend_elements[0].set_label(f'Turn {self.turn_number}')
-        self.legend_elements[1].set_label(f'Round {math.ceil(self.turn_number/3)}')
+        self.legend_elements[1].set_label(f'Round {math.ceil(self.turn_number / 3)}')
         if self.turn_number == 1:
-            plt.savefig(self.config["visualization_folder"],dpi=self.config['dpi'],
+            plt.savefig(self.config["visualization_folder"], dpi=self.config['dpi'],
                         bbox_inches='tight')
         fig = plt.gcf()
         fig.tight_layout()
@@ -286,6 +287,7 @@ class Game:
             duration=400,  # in milliseconds
             loop=0
         )
+
     def save_mp4(self, gif_file_name, mp4_file_name):
         clip = mp.VideoFileClip(f'{self.config["visualization_folder"]}/{gif_file_name}')
         clip.write_videofile(f'{self.config["visualization_folder"]}/{mp4_file_name}')
