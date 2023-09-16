@@ -67,6 +67,7 @@ class Game:
         self.pos = []
         self.flags = {0: "green", 1: "red", 2: "blue", None: "black"}
         self.pos = None
+        self.labels = {}
 
     def update_game_state(self) -> None:
         # update the game state
@@ -223,10 +224,9 @@ class Game:
         for _, u in self.nodes.items():
             if u.owner is not None:
                 self.node_colors[u.id] = self.flags[u.owner.id]
-
+                self.labels[u.id] = u.number_of_troops + u.number_of_fort_troops
     def visualize(self, directory):
         self.update_visualization()
-
         for shape in [self.config['normal_node_shape'], self.config['strategic_node_shape']]:
             nodelist = [i for i in range(len(self.node_shapes)) if self.node_shapes[i] == shape]
             nx.draw_networkx_nodes(
@@ -238,6 +238,10 @@ class Game:
                 alpha=[self.alpha[i] for i in nodelist],
             )
         nx.draw_networkx_edges(self.G, self.pos)
+        nx.draw_networkx_labels(self.G, self.pos, self.labels,
+                                font_size=8,
+                                font_color="white")
+
         if not os.path.exists(f"{self.DIR}/{directory}"):
             os.makedirs(f"{self.DIR}/{directory}")
         file_name_graph = f'{self.DIR}/{directory}/{self.turn_number}'
