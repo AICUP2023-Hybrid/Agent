@@ -78,7 +78,7 @@ def run_game(player_turn):
     # Build Kernel
     kernel = Kernel(kernel_main_game, kernel_config)
 
-    #Build Enemy clients
+    # Build Enemy clients
     clients = []
     for i in range(3):
         if player_turn == i:
@@ -88,6 +88,7 @@ def run_game(player_turn):
 
     winning_player, end_type = change_turn(kernel.main_game, *clients,
                                            visualize=True)
+    kernel.main_game.save_gif('test.gif')
     return winning_player, end_type
 
 

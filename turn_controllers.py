@@ -157,6 +157,6 @@ def change_turn(main_game, c_ai, c_two, c_three, directory = "tmp", visualize=Fa
         # check if the game is finished
         is_finished, index, end_type = check_finish(main_game)
         if visualize:
-            main_game.visualize(directory= directory)
+            main_game.visualize()
         if is_finished:
             return index, end_type
