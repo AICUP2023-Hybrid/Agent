@@ -2,8 +2,9 @@
 # Date: 2023/09/06
 import math
 import random
+from multiprocessing import Pool
 from typing import List, Any
-
+from tqdm.contrib.concurrent import process_map
 from Kernel import Kernel
 from clients.salar.SalarAgent import ClientSalar
 from components.game import Game
@@ -48,11 +49,11 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = [ClientEnemyTwo, ClientAi, ClientSalar]
+    clients = list(enumerate([ClientEnemyTwo, ClientAi, ClientSalar]))
 
     random.shuffle(clients)
 
-    return [client(kernel) for client in clients]
+    return [client(kernel, i) for i, client in clients]
 
 
 def get_kernel():
@@ -61,7 +62,7 @@ def get_kernel():
 
     kernel_main_game = Game()
     # get the selected map from the player
-    selected_map = '3'
+    selected_map = str(random.choice(list(range(1,5))))
 
     while selected_map.isdigit() is False or int(selected_map) >= len(maps) or int(selected_map) < 0:
         # show the list of maps from the maps folder
@@ -80,41 +81,43 @@ def get_kernel():
     return Kernel(kernel_main_game, kernel_config)
 
 
-def get_score_by_client(d: dict):
-    return "\n".join([f"{k}:\t{v}" for k, v in d.items()])
+def get_score_by_client(score: dict):
+    return "\n".join([f"{k}: {v}" for k, v in sorted(score.items(), key=lambda x: x[0])])
 
+
+def do(i):
+    block_print()
+    # Creating and running game
+    kernel = get_kernel()
+    clients = get_clients_random(kernel)
+    wp, end_type = run_game(kernel, clients)
+
+    enable_print()
+    return wp, end_type, [client.__name__() for client in clients]
 
 def main():
-    n_iterations = 1
-    for player in range(1):
-        wins_by_pos = defaultdict(lambda: [0, 0, 0])
-        wins = defaultdict(lambda: 0)
-        by_score = defaultdict(lambda: 0)
-        by_strategic = defaultdict(lambda : 0)
-        losses_list = []
-        for i in tqdm(range(n_iterations)):
-            block_print()
-            # Creating and running game
-            kernel = get_kernel()
-            # clients = get_clients_specific(kernel, player)
-            clients = get_clients_random(kernel, player)
-            wp, end_type = run_game(kernel, clients, game_vis_file_name=f'p{player}-game{i}')
+    n_iterations = 5000
+    wins_by_pos = defaultdict(lambda: [0, 0, 0])
+    wins = defaultdict(lambda: 0)
+    by_score = defaultdict(lambda: 0)
+    by_strategic = defaultdict(lambda: 0)
+    played = defaultdict(lambda: 0)
+    losses_list = []
+    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=24):
+        wins[client_names[wp]] += 1
+        wins_by_pos[client_names[wp]][wp] += 1
+        if end_type == 'by_score':
+            by_score[client_names[wp]] += 1
+        else:
+            by_strategic[client_names[wp]] += 1
+        for client_name in client_names:
+            played[client_name] += 1
 
-            enable_print()
-            wins[clients[wp].__name__()] += 1
-            wins_by_pos[clients[wp].__name__()][wp] += 1
-            if end_type == 'by_score':
-                by_score[clients[wp].__name__()] += 1
-            else:
-                by_strategic[clients[wp].__name__()] += 1
-            if wp != player:
-                losses_list.append(i)
-        print(f'player turn: {player}')
-        print(f'lost games: {losses_list}')
-        print(f'---wins---\n{get_score_by_client(wins)}')
-        print(f'---wins by pos---\n{get_score_by_client(wins_by_pos)}')
-        print(f'---by score---\n{get_score_by_client(by_score)}')
-        print(f'---by strategic---\n{get_score_by_client(by_strategic)}')
+    print(f'lost games: {losses_list}')
+    print(f'---wins---\n{get_score_by_client(wins)}')
+    print(f'---wins by pos---\n{get_score_by_client(wins_by_pos)}')
+    print(f'---by score---\n{get_score_by_client(by_score)}')
+    print(f'---by strategic---\n{get_score_by_client(by_strategic)}')
 
 
 def run_game(kernel, clients, game_vis_file_name=None):

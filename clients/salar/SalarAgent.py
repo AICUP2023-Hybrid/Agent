@@ -1,3 +1,5 @@
+import math
+
 from clients.game_client import GameClient
 import random
 
@@ -8,11 +10,12 @@ from clients.utils.get_possible_danger import get_node_danger
 
 class ClientSalar:
 
-    def __init__(self, kernel) -> None:
+    def __init__(self, kernel, name_id=0) -> None:
         self.flag = False
         self.kernel = kernel
         self.game = self.join_kernel()
         self.non_strategic_node = 0
+        self.name_id = name_id
         print(self.kernel.ready(self.game.get_player_id()))
 
     def join_kernel(self):
@@ -48,7 +51,7 @@ class ClientSalar:
                 print(self.game.put_one_troop(node.id), "-- putting one troop on", node.id)
                 return
 
-        if self.non_strategic_node >= 4:
+        if self.non_strategic_node >= 0:
             return
 
         for node in nodes_sorted:
@@ -61,12 +64,42 @@ class ClientSalar:
     def turn(self):
         print('start attack')
         print(self.game.game_data.player_id)
-        plan_attack(self.game)
+        self.game.game_data.update_game_state()
+
+        gdata = self.game.game_data
+
+        if self.game.player_id != 1:
+            # Get the strategic resource
+            my_nodes = [
+                (node, get_node_danger(gdata, node))
+                for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic
+            ]
+            my_nodes = sorted(my_nodes, key=lambda x: -x[1])
+
+            for node, danger in my_nodes:
+                if danger > 0:
+                    troops = min(math.ceil(danger / 2), gdata.remaining_init[gdata.player_id])
+                    print(self.game.put_troop(node.id, troops), f"-- putting {troops} troop on {node.id}")
+                    break
+            plan_attack(self.game, should_fort=False)
+
+            my_nodes = [
+                (node, get_node_danger(gdata, node))
+                for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic
+            ]
+            my_nodes = sorted(my_nodes, key=lambda x: -x[1])
+            for node, danger in my_nodes:
+                if danger > 0:
+                    troops = min(math.ceil(danger / 2), node.number_of_troops)
+                    print(self.game.fort(node.id, troops), f"-- forting {troops} troop on {node.id}")
+                    break
+        else:
+            plan_attack(self.game, should_fort=True)
+
         self.game.game_data.phase_2_turns += 1
 
     def get_game(self):
         return self.game
 
-    @staticmethod
-    def __name__():
-        return "Bokon Chad"
+    def __name__(self):
+        return f"Madar khoda Chad {self.name_id}"
