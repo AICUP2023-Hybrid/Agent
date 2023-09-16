@@ -78,11 +78,12 @@ def main():
         by_strategic = [0, 0, 0]
         losses_list = []
         for i in tqdm(range(n_iterations)):
-            block_print()
+            # block_print()
             # Creating and running game
+            game_vis_file_name = f'p{player}_game{i}'
             kernel = get_kernel()
             clients = get_clients(kernel, player)
-            wp, end_type = run_game(kernel, clients)
+            wp, end_type = run_game(kernel, clients,game_vis_file_name)
 
             enable_print()
             wins[wp] += 1
