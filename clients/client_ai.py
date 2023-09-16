@@ -9,10 +9,11 @@ from clients.stages.initializer import initialize_turn
 
 
 class ClientAi:
-    def __init__(self, kernel) -> None:
+    def __init__(self, kernel, name_id=0) -> None:
         self.flag = False
         self.kernel = kernel
         self.game = self.join_kernel()
+        self.name_id = name_id
         print(self.kernel.ready(self.game.get_player_id()))
 
     def join_kernel(self):
@@ -35,6 +36,5 @@ class ClientAi:
     def get_game(self):
         return self.game
 
-    @staticmethod
-    def __name__():
-        return "Aggressive Chad"
+    def __name__(self):
+        return f"Aggressive Chad {self.name_id}"

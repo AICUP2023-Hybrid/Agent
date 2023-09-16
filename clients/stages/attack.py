@@ -30,7 +30,7 @@ def attack_path(game: GameClient, path):
         gdata.update_game_state()
 
 
-def plan_attack(game: GameClient):
+def plan_attack(game: GameClient, should_fort=True):
     gdata: GameData = game.game_data
     gdata.update_game_state()
     remaining_troops = gdata.remaining_init[gdata.player_id]
@@ -189,7 +189,7 @@ def plan_attack(game: GameClient):
                 max_path[-1].number_of_troops *= 2
                 danger = get_node_danger(gdata, max_path[-1])
                 max_path[-1].restore_version()
-                if danger <= 0:  # TODO tune this based on the risk
+                if danger <= 0 and should_fort:  # TODO tune this based on the risk
                     game.fort(max_path[-1].id, max_path[-1].number_of_troops)
                     gdata.update_game_state()
         return

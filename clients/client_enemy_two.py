@@ -6,10 +6,11 @@ import random
 
 
 class ClientEnemyTwo():
-    def __init__(self, kernel) -> None:
+    def __init__(self, kernel, name_id=0) -> None:
         self.flag = False
         self.kernel = kernel
         self.game = self.join_kernel()
+        self.name_id = name_id
         print(self.kernel.ready(self.game.get_player_id()))
 
     def join_kernel(self):
@@ -112,6 +113,6 @@ class ClientEnemyTwo():
             print(self.game.fort(max_node, 3))
             print(self.game.get_number_of_fort_troops())
             self.flag = True
-    @staticmethod
-    def __name__():
-        return "Random AF"
+
+    def __name__(self):
+        return f"Random AF {self.name_id}"
