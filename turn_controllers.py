@@ -105,7 +105,7 @@ def game_finished(main_game, score):
 
 def change_turn(main_game, c_ai, c_two, c_three, directory = "tmp", visualize=False):
     if visualize:
-        main_game.initialize_visualization(c_ai,c_two,c_three)
+        main_game.initialize_visualization(c_two,c_three,c_ai)
     while True:
         # increase the turn number and initialize the turn
         player_id = main_game.start_turn()
