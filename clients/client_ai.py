@@ -30,6 +30,7 @@ class ClientAi:
     def turn(self):
         print('start attack')
         print(self.game.game_data.player_id)
+        self.game.game_data.stage = 1
         plan_attack(self.game)
         self.game.game_data.phase_2_turns += 1
 
