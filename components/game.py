@@ -274,8 +274,16 @@ class Game:
                                 font_color="white")
 
         #Turn, Round, and Winner index
-        self.legend_elements[1].set_label(f'Turn {self.turn_number}')
-        self.legend_elements[2].set_label(f'Round {math.ceil(self.turn_number / 3)}')
+        turn_label = ""
+        round_label = ""
+        if self.game_state == 1:
+            turn_label = f'Turn {self.turn_number}'
+            round_label = f'Round {math.ceil(self.turn_number / 3)}'
+        elif self.game_state == 2:
+            turn_label = f'Turn {self.turn_number} ({self.turn_number - 105})'
+            round_label = f'Round {math.ceil(self.turn_number / 3)} ({math.ceil((self.turn_number-105) / 3)})'
+        self.legend_elements[1].set_label(turn_label)
+        self.legend_elements[2].set_label(round_label)
         if is_finished:
             self.legend_elements[0].set_label(f'Winner: P{index}')
 

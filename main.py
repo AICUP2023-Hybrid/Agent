@@ -90,20 +90,20 @@ def do(i):
     # Creating and running game
     kernel = get_kernel()
     clients = get_clients_random(kernel)
-    wp, end_type = run_game(kernel, clients)
+    wp, end_type = run_game(kernel, clients, f'{i}')
 
     enable_print()
     return wp, end_type, [client.__name__() for client in clients]
 
 def main():
-    n_iterations = 5000
+    n_iterations = 1
     wins_by_pos = defaultdict(lambda: [0, 0, 0])
     wins = defaultdict(lambda: 0)
     by_score = defaultdict(lambda: 0)
     by_strategic = defaultdict(lambda: 0)
     played = defaultdict(lambda: 0)
     losses_list = []
-    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=24):
+    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=1):
         wins[client_names[wp]] += 1
         wins_by_pos[client_names[wp]][wp] += 1
         if end_type == 'by_score':
