@@ -227,11 +227,15 @@ class Game:
         self.players[player_id].nodes.remove(self.nodes[node_id])
         self.nodes[node_id].owner = None
 
-    def initialize_visualization(self):
+    def initialize_visualization(self, c_one,c_two,c_three):
         self.node_colors = [self.config['normal_node_color']] * len(self.nodes)
         self.alpha = [self.config['normal_node_alpha']] * len(self.nodes)
         self.node_shapes = [self.config['normal_node_shape']] * len(self.nodes)
         self.node_size = [self.config['normal_node_size']] * len(self.nodes)
+
+        self.legend_elements[3].set_label(f'{c_one.__name__()}')
+        self.legend_elements[7].set_label(f'{c_two.__name__()}')
+        self.legend_elements[11].set_label(f'{c_three.__name__()}')
         for i in range(len(self.nodes)):
             self.G.add_node(i)
         for _, u in self.nodes.items():
