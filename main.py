@@ -114,6 +114,7 @@ def main():
         for pos, client_name in enumerate(client_names):
             total_by_pos[client_name][pos] += 1
 
+    print(f'lost games: {losses_list}')
     print(f'---wins---\n{get_score_by_client(wins)}')
     print('---by player results---')
     client_names = sorted([item[0] for item in total_by_pos.items()])

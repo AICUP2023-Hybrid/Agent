@@ -227,11 +227,15 @@ class Game:
         self.players[player_id].nodes.remove(self.nodes[node_id])
         self.nodes[node_id].owner = None
 
-    def initialize_visualization(self):
+    def initialize_visualization(self, c_one,c_two,c_three):
         self.node_colors = [self.config['normal_node_color']] * len(self.nodes)
         self.alpha = [self.config['normal_node_alpha']] * len(self.nodes)
         self.node_shapes = [self.config['normal_node_shape']] * len(self.nodes)
         self.node_size = [self.config['normal_node_size']] * len(self.nodes)
+
+        self.legend_elements[3].set_label(f'{c_one.__name__()}')
+        self.legend_elements[7].set_label(f'{c_two.__name__()}')
+        self.legend_elements[11].set_label(f'{c_three.__name__()}')
         for i in range(len(self.nodes)):
             self.G.add_node(i)
         for _, u in self.nodes.items():
@@ -274,8 +278,16 @@ class Game:
                                 font_color="white")
 
         #Turn, Round, and Winner index
-        self.legend_elements[1].set_label(f'Turn {self.turn_number}')
-        self.legend_elements[2].set_label(f'Round {math.ceil(self.turn_number / 3)}')
+        turn_label = ""
+        round_label = ""
+        if self.game_state == 1:
+            turn_label = f'Turn {self.turn_number}'
+            round_label = f'Round {math.ceil(self.turn_number / 3)}'
+        elif self.game_state == 2:
+            turn_label = f'Turn {self.turn_number} ({self.turn_number - 105})'
+            round_label = f'Round {math.ceil(self.turn_number / 3)} ({math.ceil((self.turn_number-105) / 3)})'
+        self.legend_elements[1].set_label(turn_label)
+        self.legend_elements[2].set_label(round_label)
         if is_finished:
             self.legend_elements[0].set_label(f'Winner: P{index}')
 
