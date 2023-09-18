@@ -26,6 +26,7 @@ class ClientAi:
     def initializer_turn(self):
         print('start')
         initialize_turn(self.game)
+        self.game.next_state()
 
     def turn(self):
         print('start attack')
