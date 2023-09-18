@@ -20,14 +20,14 @@ for i in range(3):
 
 init_data = response['initialize']
 turns_data = sorted(response['turns'].items())
-game.initialize_visualization(*response['team_names'])
-winner = np.argmax([response['score'][i] for i in [2, 0, 1]])
+game.initialize_visualization(*[response['team_names'] for i in [1, 2, 0]])
+winner = np.argmax(response['score'])
 
 last_ind = 0
 for _ in range(1, 106):
     player_id = game.start_turn()
     player = game.players[player_id]
-    if last_ind < len(init_data) and player_id == (init_data[last_ind][0] + 1) % 3:
+    if last_ind < len(init_data) and player_id == init_data[last_ind][0]:
         node = game.nodes[init_data[last_ind][1]]
         node.number_of_troops += 1
         player.number_of_troops_to_place -= 1
@@ -52,13 +52,13 @@ for ti, (turn, data) in enumerate(turns_data):
     for node_id in range(len(owners)):
         node = game.nodes[node_id]
         if owners[node_id] != -1:
-            node.owner = game.players[(1 + owners[node_id]) % 3]
+            node.owner = game.players[owners[node_id]]
             game.players[node.owner.id].nodes.append(node)
         node.number_of_troops = troops[node_id]
         node.number_of_fort_troops = forts[node_id]
     for item in data['attack']:
         target = item['target']
-        new_owner = (1 + item['new_target_owner']) % 3
+        new_owner = item['new_target_owner']
         if new_owner == player_id:
             player.number_of_troops_to_place += read_config()['number_of_troops_after_successful_attack']
             break
