@@ -49,7 +49,7 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = list(enumerate([ClientEnemyTwo, ClientAi, ClientEnemyTwo]))
+    clients = list(enumerate([ClientAi, ClientAi, ClientAi]))
 
     random.shuffle(clients)
 
@@ -86,18 +86,21 @@ def get_score_by_client(score: dict):
 
 
 def do(i):
+    visualize = False
     block_print()
     # Creating and running game
     kernel = get_kernel()
     clients = get_clients_random(kernel)
-    wp, end_type = run_game(kernel, clients)  #, f'game{i}')
+    wp, end_type = run_game(kernel, clients, game_vis_file_name=f'game{i}' if visualize else None)
 
     enable_print()
+    if visualize:
+        print(f'game result {i}: {clients[wp].__name__()}')
     return wp, end_type, [client.__name__() for client in clients]
 
 
 def main():
-    n_iterations = 100
+    n_iterations = 8
     wins = defaultdict(lambda: 0)
     total_by_pos = defaultdict(lambda: [0, 0, 0])
     wins_by_pos = defaultdict(lambda: [0, 0, 0])
