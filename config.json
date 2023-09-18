@@ -23,5 +23,7 @@
     "strategic_node_shape": "d",
     "normal_node_color": "black",
     "dpi": 100,
-    "visualization_folder": "./visualizations"
+    "visualization_folder": "./visualizations",
+    "server_ip": "127.0.0.1",
+    "server_port": 12345
 }

@@ -1,9 +1,10 @@
+import online_src
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.get_possible_danger import get_node_danger
 
 
-def initialize_turn(game: GameClient):
+def initialize_turn(game: GameClient | online_src.game.Game):
     game.game_data.update_game_state()
 
     gdata = game.game_data

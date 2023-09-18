@@ -4,6 +4,7 @@ from typing import List
 
 import networkx as nx
 
+import online_src
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger, \
@@ -30,7 +31,7 @@ def attack_path(game: GameClient, path):
         gdata.update_game_state()
 
 
-def plan_attack(game: GameClient, should_fort=True):
+def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     gdata: GameData = game.game_data
     gdata.update_game_state()
     remaining_troops = gdata.remaining_init[gdata.player_id]
@@ -129,7 +130,8 @@ def plan_attack(game: GameClient, should_fort=True):
         danger = 1000
         for i in range(0 if path[0].is_strategic else int(attack_power), int(attack_power) + 1):
             path[0].number_of_troops = int(attack_power) - i + 1
-            path[-1].number_of_troops = i + 1 if gdata.done_fort else (i + 1) * 2
+            # fort can't be done to all troops according to game rules so in the next line we have 1 + i * 2
+            path[-1].number_of_troops = i + 1 if gdata.done_fort else 1 + i * 2
             if path[0].is_strategic:
                 danger = min(danger, max(get_node_danger(gdata, path[0]), get_node_danger(gdata, st_node)))
             else:
@@ -161,7 +163,8 @@ def plan_attack(game: GameClient, should_fort=True):
             min_danger, move_back = 1000, None
             for i in range(1, troop_cnt + 1):
                 max_path[0].number_of_troops = troop_cnt - i + 1
-                max_path[-1].number_of_troops = i if gdata.done_fort else i * 2
+                # same reason as last time we have 2i - 1 in the next line
+                max_path[-1].number_of_troops = i if gdata.done_fort else i * 2 - 1
 
                 src_strategic_danger = get_node_danger(gdata, max_path[0])
                 target_strategic_danger = get_node_danger(gdata, max_path[-1])
@@ -172,17 +175,19 @@ def plan_attack(game: GameClient, should_fort=True):
                     move_back = troop_cnt - i
             if min_danger <= 0 < move_back:
                 game.move_troop(max_path[-1].id, max_path[0].id, move_back)
+                gdata.update_game_state()
             # Based on higher score
             if min_danger > 0:
                 if max_path[0].score_of_strategic > max_path[-1].score_of_strategic:
                     game.move_troop(max_path[-1].id, max_path[0].id, troop_cnt - 1)
+                    gdata.update_game_state()
 
 
         max_path[0].restore_version()
         max_path[1].restore_version()
 
         game.next_state()
-        if not gdata.done_fort and max_path[-1].owner == gdata.player_id:
+        if not gdata.done_fort and max_path[-1].owner == gdata.player_id and max_path[-1].number_of_troops > 1:
             danger = get_node_danger(gdata, max_path[-1])
             if danger > 0:
                 max_path[-1].save_version()
@@ -190,7 +195,8 @@ def plan_attack(game: GameClient, should_fort=True):
                 danger = get_node_danger(gdata, max_path[-1])
                 max_path[-1].restore_version()
                 if danger <= 0 and should_fort:  # TODO tune this based on the risk
-                    game.fort(max_path[-1].id, max_path[-1].number_of_troops)
+                    game.fort(max_path[-1].id, max_path[-1].number_of_troops - 1)
+                    gdata.done_fort = True
                     gdata.update_game_state()
         return
 

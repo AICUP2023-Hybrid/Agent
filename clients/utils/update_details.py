@@ -8,10 +8,11 @@ from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 from components.node import Node
 from collections import defaultdict
+import online_src
 
 
 class GameData:
-    def __init__(self, game: GameClient):
+    def __init__(self, game: GameClient | online_src.game.Game):
         self.nodes: List[Node] = []
         self.player_id = None
         self.player_cnt = 3
