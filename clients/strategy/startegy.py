@@ -38,6 +38,8 @@ class FortAction:
 
 
 class Strategy:
+    def __init__(self, game: GameClient | Game):
+        self.game = game
 
     @abstractmethod
     def put_troops(self) -> List[PutTroopsAction]:
@@ -55,20 +57,37 @@ class Strategy:
     def fortify(self) -> Optional[FortAction]:
         pass
 
-    def run_strategy(self, game_client: GameClient | Game):
+    @abstractmethod
+    def compute_plan(self):
+        pass
+
+    def run_strategy(self):
+        gdata = self.game.game_data
         for put_troop in self.put_troops():
-            game_client.put_troop(put_troop.node.id, put_troop.number_of_troops)
+            self.game.put_troop(put_troop.node.id, put_troop.number_of_troops)
+
+        gdata.update_game_state()
+        self.game.next_state()
 
         for attack in self.attacks():
-            if attack.src.owner != game_client.game_data.player_id or attack.src.number_of_troops < 2:
+            if attack.src.owner != self.game.game_data.player_id or attack.src.number_of_troops < 2:
                 print('attack chain broke', file=f)
                 continue
-            game_client.attack(attack.src.id, attack.dest.id, attack.fraction, attack.move_fraction)
+            self.game.attack(attack.src.id, attack.dest.id, attack.fraction, attack.move_fraction)
+            gdata.update_game_state()
+
+        self.game.next_state()
 
         move_troops = self.move_troop()
         if move_troops:
-            game_client.move_troop(move_troops.src.id, move_troops.dest.id, move_troops.count)
+            self.game.move_troop(move_troops.src.id, move_troops.dest.id, move_troops.count)
+
+        gdata.update_game_state()
+        self.game.next_state()
 
         fortify = self.fortify()
         if fortify:
-            game_client.fort(fortify.node.id, fortify.count)
+            self.game.fort(fortify.node.id, fortify.count)
+
+        gdata.update_game_state()
+        self.game.next_state()

@@ -6,6 +6,8 @@ import networkx as nx
 
 import online_src
 from clients.game_client import GameClient
+from clients.strategy.plus3_strategy import Plus3Strategy
+from clients.strategy.startegy import Strategy
 from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger, \
     get_two_way_attack
@@ -217,30 +219,6 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
         return
 
     # +3 force attack
-    expected_casualty = get_expected_casualty()
-    max_score, src, tar = 0, None, None
-    for node in gdata.nodes:
-        if node.owner not in [gdata.player_id, None]:
-            continue
-        for nei in node.adj_main_map:
-            if nei.owner not in [None, gdata.player_id]:
-                troops = nei.number_of_troops + nei.number_of_fort_troops
-                casualty = expected_casualty[troops] + 1
-                score = node.number_of_troops + 3 - casualty
-                if max_score < score:
-                    max_score = score
-                    src = node
-                    tar = nei
-
-    if max_score > 0:
-        print('doing single attack', file=f)
-        troops_to_put = max(0, int(3 - floor(max_score)))
-        if troops_to_put > 0:
-            print(game.put_troop(src.id, troops_to_put), troops_to_put, src.id, file=f)
-        gdata.update_game_state()
-        game.next_state()
-        print(game.attack(src.id, tar.id, fraction=0, move_fraction=0 if src.is_strategic else 1), file=f)
-        gdata.update_game_state()
-        game.next_state()
-        # no moving troops
-        game.next_state()
+    plus3_strategy = Plus3Strategy(game)
+    plus3_strategy.compute_plan()
+    plus3_strategy.run_strategy()

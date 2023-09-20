@@ -34,7 +34,7 @@ class ClientAi:
         self.game.game_data.stage = 1
         plan_attack(self.game)
         self.game.game_data.phase_2_turns += 1
-        self.game.next_state()
+        # self.game.next_state()
 
     def get_game(self):
         return self.game
