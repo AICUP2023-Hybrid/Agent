@@ -10,7 +10,7 @@ from offline_main import read_config
 log_url = sys.argv[1]
 response = requests.get(log_url).json()
 game = Game()
-game.read_map('./maps/map2.json')
+game.read_map('./maps/map1.json')
 game.config = read_config()
 
 for i in range(3):
@@ -39,14 +39,9 @@ for _ in range(1, 106):
     game.visualize(False, None, None)
 
 for ti, (turn, data) in enumerate(turns_data):
-    player_id = game.start_turn()
-    player = game.players[player_id]
     owners = data['nodes_owner']
     troops = data['troop_count']
     forts = data['fort']
-    for item in data['add_troop']:
-        node_id, troop_cnt = item
-        player.number_of_troops_to_place -= troop_cnt
     for _, player in game.players.items():
         player.nodes = []
     for node_id in range(len(owners)):
@@ -56,6 +51,13 @@ for ti, (turn, data) in enumerate(turns_data):
             game.players[node.owner.id].nodes.append(node)
         node.number_of_troops = troops[node_id]
         node.number_of_fort_troops = forts[node_id]
+
+    player_id = game.start_turn()
+    player = game.players[player_id]
+    game.log_attack = data['attack']
+    for item in data['add_troop']:
+        node_id, troop_cnt = item
+        player.number_of_troops_to_place -= troop_cnt
     for item in data['attack']:
         target = item['target']
         new_owner = item['new_target_owner']

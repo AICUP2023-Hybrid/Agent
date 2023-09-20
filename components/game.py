@@ -228,6 +228,7 @@ class Game:
         self.nodes[node_id].owner = None
 
     def initialize_visualization(self, c_one, c_two, c_three):
+        plt.figure(figsize=(12, 12))
         self.node_colors = [self.config['normal_node_color']] * len(self.nodes)
         self.alpha = [self.config['normal_node_alpha']] * len(self.nodes)
         self.node_shapes = [self.config['normal_node_shape']] * len(self.nodes)
@@ -250,7 +251,7 @@ class Game:
         self.non_strategic_node_list = [i for i in range(self.G.number_of_nodes()) if
                                         self.node_shapes[i] == self.config['normal_node_shape']]
         self.pos = nx.spring_layout(self.G,
-                                    k=1.0 * 1 / math.sqrt(self.G.number_of_nodes()),
+                                    k=2. * 1 / math.sqrt(self.G.number_of_nodes()),
                                     iterations=100,
                                     seed=69)
 
@@ -272,12 +273,30 @@ class Game:
                 node_color=[self.node_colors[i] for i in nodelist],
                 alpha=[self.alpha[i] for i in nodelist],
             )
-        nx.draw_networkx_edges(self.G, self.pos)
-        nx.draw_networkx_labels(self.G, self.pos, self.labels,
-                                font_size=8,
-                                font_color="white")
+        attacks_node_set = [{attack['attacker'], attack['target']} for attack in self.log_attack]
+        player_color = self.flags[self.player_turn.id]
+        nx.draw_networkx_edges(
+            self.G, self.pos,
+            edge_color=[player_color if {a, b} in attacks_node_set else 'k' for a, b in self.G.edges],
+            width=[2. if {u, v} in attacks_node_set else 1. for u, v in self.G.edges]
+        )
+        edge_labels = {}
+        for u, v in self.G.edges:
+            for i, attack in enumerate(attacks_node_set):
+                if {u, v} == attack:
+                    details = self.log_attack[i]
+                    attacker_troops = details['new_troop_count_attacker']
+                    defender_troops = details['new_troop_count_target']
+                    won = False
+                    if details['new_target_owner'] == self.player_turn.id:
+                        won = True
+                    edge_labels[(u, v)] = f'{"W" if won else "L"}{attacker_troops}-{defender_troops}'
+        nx.draw_networkx_edge_labels(
+            self.G, self.pos, edge_labels=edge_labels, font_color=player_color,
+            font_size=10
+        )
 
-        #Turn, Round, and Winner index
+        # Turn, Round, and Winner index
         turn_label = ""
         round_label = ""
         if self.game_state == 1:
@@ -285,13 +304,13 @@ class Game:
             round_label = f'Round {math.ceil(self.turn_number / 3)}'
         elif self.game_state == 2:
             turn_label = f'Turn {self.turn_number} ({self.turn_number - 105})'
-            round_label = f'Round {math.ceil(self.turn_number / 3)} ({math.ceil((self.turn_number-105) / 3)})'
+            round_label = f'Round {math.ceil(self.turn_number / 3)} ({math.ceil((self.turn_number - 105) / 3)})'
         self.legend_elements[1].set_label(turn_label)
         self.legend_elements[2].set_label(round_label)
         if is_finished:
             self.legend_elements[0].set_label(f'Winner: P{index}')
 
-        #Current all troops on map
+        # Current all troops on map
         normal_troops_player_0 = self.players[0].get_normal_troops()
         normal_troops_player_1 = self.players[1].get_normal_troops()
         normal_troops_player_2 = self.players[2].get_normal_troops()
@@ -302,7 +321,7 @@ class Game:
         self.legend_elements[8].set_label(f"{normal_troops_player_2} + {fort_troops_player_2}")
         self.legend_elements[12].set_label(f"{normal_troops_player_0} + {fort_troops_player_0}")
 
-        #Points gain
+        # Points gain
         normal_point_player_0 = self.players[0].get_normal_point()
         normal_point_player_1 = self.players[1].get_normal_point()
         normal_point_player_2 = self.players[2].get_normal_point()
@@ -328,12 +347,9 @@ class Game:
                    bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         nx.draw_networkx_labels(
             self.G, self.pos, self.labels,
-            font_size=8,
+            font_size=15,
             font_color="white"
         )
-        if self.turn_number == 1:
-            plt.savefig(self.config["visualization_folder"], dpi=self.config['dpi'],
-                        bbox_inches='tight')
         fig = plt.gcf()
         fig.tight_layout()
         fig.canvas.draw()
@@ -349,7 +365,8 @@ class Game:
             f'{self.config["visualization_folder"]}/{file_name}.gif',
             save_all=True,
             append_images=self.frames[1:] + self.frames[:1],  # append rest of the images
-            duration=[10000 if i >= len(self.frames) - 1 else 1000 for i in range(len(self.frames) + 1)],  # in milliseconds
+            duration=[10000 if i >= len(self.frames) - 1 else 3000 for i in range(len(self.frames) + 1)],
+            # in milliseconds
             loop=0
         )
 
