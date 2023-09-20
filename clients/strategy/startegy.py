@@ -88,6 +88,7 @@ class Strategy:
         fortify = self.fortify()
         if fortify:
             self.game.fort(fortify.node.id, fortify.count)
+            gdata.done_fort = True
 
         gdata.update_game_state()
         self.game.next_state()

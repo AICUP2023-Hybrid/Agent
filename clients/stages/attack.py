@@ -6,6 +6,7 @@ import networkx as nx
 
 import online_src
 from clients.game_client import GameClient
+from clients.strategy.one_surprise_attack import OneSurpriseAttack
 from clients.strategy.plus3_strategy import Plus3Strategy
 from clients.strategy.startegy import Strategy
 from clients.utils.attack_chance import get_expected_casualty
@@ -31,6 +32,8 @@ def attack_path(game: GameClient, path):
               'troops', path[i].number_of_troops, path[i + 1].number_of_troops,
               file=f)
         gdata.update_game_state()
+
+
 
 
 def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
@@ -115,110 +118,15 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
         return
 
     # surprise one strategic attack
-    max_attack_power, max_path = 0, []
-    for st_node in strategic_nodes:
-        attack_power, path = get_surprise_danger(
-            gdata, st_node, gdata.player_id,
-            return_max_path=True, include_src_troops=True
-        )
-        path: List[Node]
-        if len(path) == 0 or attack_power < 1:
-            continue
-        for node in path:
-            node.save_version()
-            node.owner = gdata.player_id
-            node.number_of_troops = 1
-
-        danger = 1000
-        for i in range(0 if path[0].is_strategic else int(attack_power), int(attack_power) + 1):
-            path[0].number_of_troops = int(attack_power) - i + 1
-            # fort can't be done to all troops according to game rules so in the next line we have 1 + i * 2
-            path[-1].number_of_troops = i + 1 if gdata.done_fort else 1 + i * 2
-            if path[0].is_strategic:
-                danger = min(danger, max(get_node_danger(gdata, path[0]), get_node_danger(gdata, st_node)))
-            else:
-                danger = min(danger, get_node_danger(gdata, st_node))
-
-        for node in path:
-            node.restore_version()
-        bypass_danger = len(my_strategic) == 3 and gdata.phase_2_turns > 7
-
-        max_strategics, max_owner = -1, None
-        for pi in range(gdata.player_cnt):
-            if pi == gdata.player_id:
-                continue
-            num_stra = len([n for n in strategic_nodes if n.owner == pi])
-            if max_strategics < num_stra:
-                max_strategics = num_stra
-                max_owner = pi
-        # last chance before losing
-        if gdata.turn_number == 125 and max_strategics >= 4 and path[-1].owner == max_owner:
-            bypass_danger = True
-        if path[-1].owner != max_owner and gdata.turn_number == 125 and max_strategics >= 4:
-            continue
-
-        if danger > 0 and not bypass_danger:
-            continue
-
-        if max_attack_power < attack_power:
-            max_attack_power = attack_power
-            max_path = path
-
-    if len(max_path) > 0:
-        print('doing strategic attack', file=f)
-        game.put_troop(max_path[0].id, remaining_troops)
-        gdata.update_game_state()
-        game.next_state()
-        print([node.id for node in max_path], file=f)
-        attack_path(game, max_path)
-        game.next_state()
-
-        max_path[0].save_version()
-        max_path[-1].save_version()
-
-        if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
-            troop_cnt = max_path[-1].number_of_troops
-            min_danger, move_back = 1000, None
-            for i in range(1, troop_cnt + 1):
-                max_path[0].number_of_troops = troop_cnt - i + 1
-                # same reason as last time we have 2i - 1 in the next line
-                max_path[-1].number_of_troops = i if gdata.done_fort else i * 2 - 1
-
-                src_strategic_danger = get_node_danger(gdata, max_path[0])
-                target_strategic_danger = get_node_danger(gdata, max_path[-1])
-
-                danger = max(src_strategic_danger,target_strategic_danger)
-                if danger < min_danger:
-                    min_danger = danger
-                    move_back = troop_cnt - i
-            if min_danger <= 0 < move_back:
-                game.move_troop(max_path[-1].id, max_path[0].id, move_back)
-                gdata.update_game_state()
-            # Based on higher score
-            if min_danger > 0:
-                if max_path[0].score_of_strategic > max_path[-1].score_of_strategic:
-                    game.move_troop(max_path[-1].id, max_path[0].id, troop_cnt - 1)
-                    gdata.update_game_state()
-
-
-        max_path[0].restore_version()
-        max_path[1].restore_version()
-
-        game.next_state()
-        if not gdata.done_fort and max_path[-1].owner == gdata.player_id and max_path[-1].number_of_troops > 1:
-            danger = get_node_danger(gdata, max_path[-1])
-            if danger > 0:
-                max_path[-1].save_version()
-                max_path[-1].number_of_troops *= 2
-                danger = get_node_danger(gdata, max_path[-1])
-                max_path[-1].restore_version()
-                if danger <= 0 and should_fort:  # TODO tune this based on the risk
-                    game.fort(max_path[-1].id, max_path[-1].number_of_troops - 1)
-                    gdata.done_fort = True
-                    gdata.update_game_state()
+    one_surprise_attack_strategy = OneSurpriseAttack(game)
+    shall_pass = one_surprise_attack_strategy.compute_plan()
+    if shall_pass:
+        one_surprise_attack_strategy.run_strategy()
         return
 
     # +3 force attack
     plus3_strategy = Plus3Strategy(game)
-    plus3_strategy.compute_plan()
-    plus3_strategy.run_strategy()
+    shall_pass = plus3_strategy.compute_plan()
+    if shall_pass:
+        plus3_strategy.run_strategy()
+        return

@@ -47,3 +47,4 @@ class Plus3Strategy(Strategy):
         self.troops_to_put = troops_to_put
         self.src = src
         self.tar = tar
+        return max_score > 0
