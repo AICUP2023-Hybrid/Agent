@@ -55,6 +55,8 @@ for ti, (turn, data) in enumerate(turns_data):
     player_id = game.start_turn()
     player = game.players[player_id]
     game.log_attack = data['attack']
+    game.end_turn()
+    game.visualize(ti == len(turns_data) - 1, winner, None)
     for item in data['add_troop']:
         node_id, troop_cnt = item
         player.number_of_troops_to_place -= troop_cnt
@@ -64,8 +66,6 @@ for ti, (turn, data) in enumerate(turns_data):
         if new_owner == player_id:
             player.number_of_troops_to_place += read_config()['number_of_troops_after_successful_attack']
             break
-    game.end_turn()
-    game.visualize(ti == len(turns_data) - 1, winner, None)
 
 game.save_gif('vis')
 game.save_mp4('vis')
