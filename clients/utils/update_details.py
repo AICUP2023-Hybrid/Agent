@@ -21,6 +21,7 @@ class GameData:
         self.later_added = [0,0,0]
         self.stage = 0
         self.phase_2_turns = 1
+        self.turn_number = None
         self.done_fort = False
 
     def update_game_state(self):
@@ -42,6 +43,7 @@ class GameData:
             for node, score in strategic_nodes:
                 self.nodes[node].is_strategic = True
                 self.nodes[node].score_of_strategic = score
+        self.turn_number = self.game.get_turn_number()['turn_number']
 
         for node_idx_str, owner_id in self.game.get_owners().items():
             self.nodes[int(node_idx_str)].owner = owner_id if owner_id != -1 else None

@@ -139,9 +139,23 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
 
         for node in path:
             node.restore_version()
+        bypass_danger = len(my_strategic) == 3 and gdata.phase_2_turns > 7
 
-        if danger > 0 and (len(my_strategic) < 3 or gdata.phase_2_turns <= 7):
+        max_strategics, max_owner = -1, None
+        for pi in range(gdata.player_cnt):
+            if pi == gdata.player_id:
+                continue
+            num_stra = len([n for n in strategic_nodes if n.owner == pi])
+            if max_strategics < num_stra:
+                max_strategics = num_stra
+                max_owner = pi
+        # last chance before losing
+        if gdata.turn_number == 125 and max_strategics >= 4 and max_path[-1].owner == max_owner:
+            bypass_danger = True
+
+        if danger > 0 and not bypass_danger:
             continue
+
         if max_attack_power < attack_power:
             max_attack_power = attack_power
             max_path = path
