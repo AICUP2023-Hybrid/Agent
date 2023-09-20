@@ -100,7 +100,7 @@ def do(i):
 
 
 def main():
-    n_iterations = 8
+    n_iterations = 1000
     wins = defaultdict(lambda: 0)
     total_by_pos = defaultdict(lambda: [0, 0, 0])
     wins_by_pos = defaultdict(lambda: [0, 0, 0])

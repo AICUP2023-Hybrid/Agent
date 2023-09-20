@@ -10,7 +10,7 @@ from offline_main import read_config
 log_url = sys.argv[1]
 response = requests.get(log_url).json()
 game = Game()
-game.read_map('./maps/map1.json')
+game.read_map('./maps/map2.json')
 game.config = read_config()
 
 for i in range(3):
