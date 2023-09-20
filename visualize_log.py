@@ -20,7 +20,7 @@ for i in range(3):
 
 init_data = response['initialize']
 turns_data = sorted(response['turns'].items())
-game.initialize_visualization(*[response['team_names'] for i in [1, 2, 0]])
+game.initialize_visualization(*[response['team_names'][i] for i in [1, 2, 0]])
 winner = np.argmax(response['score'])
 
 last_ind = 0
