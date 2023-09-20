@@ -150,8 +150,10 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
                 max_strategics = num_stra
                 max_owner = pi
         # last chance before losing
-        if len(max_path) > 0 and gdata.turn_number == 125 and max_strategics >= 4 and max_path[-1].owner == max_owner:
+        if gdata.turn_number == 125 and max_strategics >= 4 and path[-1].owner == max_owner:
             bypass_danger = True
+        if path[-1].owner != max_owner and gdata.turn_number == 125 and max_strategics >= 4:
+            continue
 
         if danger > 0 and not bypass_danger:
             continue
