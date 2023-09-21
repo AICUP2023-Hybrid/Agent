@@ -1,4 +1,5 @@
 from clients.strategy.startegy import *
+from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.utils.attack_chance import get_expected_casualty
 from math import floor
 
@@ -27,34 +28,8 @@ class OneSurpriseAttack(Strategy):
     def move_troop(self) -> Optional[MoveTroopAction]:
         gdata = self.game.game_data
         max_path = self.attack_path
-
-        max_path[0].save_version()
-        max_path[-1].save_version()
-        move_troops = None
         if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
-            troop_cnt = max_path[-1].number_of_troops
-            min_danger, move_back = 1000, None
-            for i in range(1, troop_cnt + 1):
-                max_path[0].number_of_troops = troop_cnt - i + 1
-                # same reason as last time we have 2i - 1 in the next line
-                max_path[-1].number_of_troops = i if gdata.done_fort else i * 2 - 1
-
-                src_strategic_danger = get_node_danger(gdata, max_path[0])
-                target_strategic_danger = get_node_danger(gdata, max_path[-1])
-
-                danger = max(src_strategic_danger, target_strategic_danger)
-                if danger < min_danger:
-                    min_danger = danger
-                    move_back = troop_cnt - i
-            if min_danger <= 0 < move_back:
-                move_troops = MoveTroopAction(src= max_path[-1], dest = max_path[0], count= move_back)
-            # Based on higher score
-            if min_danger > 0:
-                if max_path[0].score_of_strategic >= max_path[-1].score_of_strategic:
-                    move_troops = MoveTroopAction(src=max_path[-1], dest=max_path[0], count=troop_cnt - 1)
-        max_path[0].restore_version()
-        max_path[-1].restore_version()
-        return move_troops
+            return balance_troops_between_two_strategics(gdata, max_path[-1], max_path[0])
 
     def fortify(self) -> Optional[FortAction]:
         gdata = self.game.game_data

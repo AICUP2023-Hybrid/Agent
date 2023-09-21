@@ -42,10 +42,7 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     # "get much as territory when last player in last round" strategy
     is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
     if is_last_turn and gdata.player_id == 0:
-        with open('valad.txt', 'a') as rs:
-            print(remaining_troops, len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
-            maximize_score(game, rs)
-            print('got them nodes: ', len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+        maximize_score(game)
         return
 
     # surprise one strategic attack
