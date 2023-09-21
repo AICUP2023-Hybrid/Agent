@@ -120,9 +120,9 @@ class OneSurpriseAttack(Strategy):
                     max_strategics = num_stra
                     max_owner = pi
             # last chance before losing
-            if gdata.turn_number == 125 and max_strategics >= 4 and path[-1].owner == max_owner:
+            if gdata.turn_number >= 124 and max_strategics >= 4 and path[-1].owner == max_owner:
                 bypass_danger = True
-            if path[-1].owner != max_owner and gdata.turn_number == 125 and max_strategics >= 4:
+            if path[-1].owner != max_owner and gdata.turn_number >= 124 and max_strategics >= 4:
                 continue
 
             if danger > 0 and not bypass_danger:
