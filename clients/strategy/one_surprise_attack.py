@@ -52,7 +52,6 @@ class OneSurpriseAttack(Strategy):
             if min_danger > 0:
                 if max_path[0].score_of_strategic >= max_path[-1].score_of_strategic:
                     move_troops = MoveTroopAction(src=max_path[-1], dest=max_path[0], count=troop_cnt - 1)
-
         max_path[0].restore_version()
         max_path[-1].restore_version()
         return move_troops
