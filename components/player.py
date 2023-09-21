@@ -22,7 +22,7 @@ class Player:
         return sum([node.number_of_troops for node in self.nodes])
 
     def get_normal_point(self):
-        return math.floor(sum([1 for node in self.nodes if not node.is_strategic]) / 4)
+        return math.floor(sum([1 for node in self.nodes]) / 4)
 
     def get_strat_point(self):
         return sum([node.score_of_strategic for node in self.nodes if node.is_strategic])
