@@ -1,6 +1,9 @@
+import numpy as np
+
 from clients.strategy.startegy import *
+from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.strategy.utils.path_attack_sequence import get_one_path_attack_sequence
-from clients.utils.get_possible_danger import get_surprise_danger
+from clients.utils.get_possible_danger import get_surprise_danger, get_min_loss_path
 
 
 class MessStrategy(Strategy):
@@ -10,15 +13,16 @@ class MessStrategy(Strategy):
         self.attack_path = None
 
     def put_troops(self) -> List[PutTroopsAction]:
-        put_troops_action = PutTroopsAction(node=self.attack_path[0], number_of_troops=self.troops_to_put)
-
-        return [put_troops_action]
+        return [PutTroopsAction(node=self.attack_path[0], number_of_troops=self.troops_to_put)]
 
     def attacks(self) -> List[AttackAction]:
         return get_one_path_attack_sequence(self.attack_path)
 
     def move_troop(self) -> Optional[MoveTroopAction]:
-        return None
+        gdata = self.game.game_data
+        attack_path = self.attack_path
+        if attack_path[0].is_strategic and attack_path[-1].owner == gdata.player_id:
+            return balance_troops_between_two_strategics(gdata, attack_path[-1], attack_path[0])
 
     def fortify(self) -> Optional[FortAction]:
         return None
@@ -29,36 +33,46 @@ class MessStrategy(Strategy):
         remaining_troops = gdata.remaining_init[gdata.player_id]
         opposing_players = [i for i in range(gdata.player_cnt) if i != gdata.player_id]
 
-        final_troops_to_put, final_objective, final_path = 0, 0, []
+        final_troops_to_put, target_n_strategics, target_troop_gain, final_path = 0, 0, 0, []
         for player in opposing_players:
             strategics = [node for node in gdata.nodes if node.owner == player and node.is_strategic]
+            player_troop_gain = 0
+            for node in strategics:
+                player_troop_gain += node.score_of_strategic
+            player_troop_gain += len([node for node in gdata.nodes if node.owner == player]) // 4
             n_strategics = len(strategics)
-            troops_to_put, min_loss, min_path = 0, 1000, []
+
+            troops_to_put, best_score, best_path = 0, 0, []
             for st_node in strategics:
-                p_gain = st_node.score_of_strategic
-                final_to_place, attack_power, path = 0, 0, []
+                final_to_place, loss, path = 0, np.Inf, []
                 for to_place in range(remaining_troops + 1):
-                    attack_power, path = get_surprise_danger(
+                    loss, path = get_min_loss_path(
                         gdata, st_node, gdata.player_id,
-                        return_max_path=True, include_src_troops=True,
-                        max_troops_to_put=to_place
+                        max_troops_to_put=to_place,
+                        attack_power_threshold=3
                     )
                     final_to_place = to_place
                     # threshold
-                    if attack_power > 3:
+                    if len(path) > 0:
                         break
                 if len(path) == 0:
                     continue
-                total_troops_src = final_to_place + path[0].number_of_troops
-                loss = total_troops_src - attack_power
-                if loss < min_loss:
+
+                # +3 for troops gain after attack
+                p_gain = st_node.score_of_strategic * 0.75
+                score = p_gain - loss + 3
+                if best_score <= score:
                     troops_to_put = final_to_place
-                    min_loss = loss
-                    min_path = path
-            if n_strategics > final_objective:
+                    best_score = score
+                    best_path = path
+
+            if n_strategics > target_n_strategics or (
+                    n_strategics == target_n_strategics and player_troop_gain > target_troop_gain
+            ):
                 final_troops_to_put = troops_to_put
-                final_objective = n_strategics
-                final_path = min_path
+                target_n_strategics = n_strategics
+                target_troop_gain = player_troop_gain
+                final_path = best_path
 
         self.attack_path = final_path
         self.troops_to_put = final_troops_to_put

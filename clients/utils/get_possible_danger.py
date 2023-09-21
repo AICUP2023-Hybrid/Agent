@@ -9,6 +9,30 @@ from clients.utils.update_details import GameData
 from components.node import Node
 
 
+def get_min_loss_path(gdata: GameData, target: Node, player,
+                      max_troops_to_put=None, attack_power_threshold=0):
+    graph = gdata.get_passable_board_graph(player)
+    gdata.update_remaining_troops_by_map()
+    if max_troops_to_put is None:
+        remaining_troops = gdata.remaining_init[player]
+    else:
+        remaining_troops = min(max_troops_to_put, gdata.remaining_init[player])
+
+    distances = nx.shortest_path_length(graph, target=target.id, weight='weight')
+    min_loss = np.Inf
+    min_path, min_src = [], None
+    for src in gdata.nodes:
+        if src.owner not in [player, None] or src.id not in distances:
+            continue
+        attack_power = gdata.nodes[src.id].number_of_troops + remaining_troops - distances[src.id]
+        if attack_power_threshold <= attack_power and distances[src.id] < min_loss:
+            min_loss = distances[src.id]
+            min_src = src
+    if min_src is not None:
+        min_path = [gdata.nodes[x] for x in nx.shortest_path(graph, min_src.id, target.id, weight='weight')]
+    return min_loss, min_path
+
+
 def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=False, include_src_troops=False,
                         max_troops_to_put=None):
     graph = gdata.get_passable_board_graph(player)
