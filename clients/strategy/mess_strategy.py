@@ -1,8 +1,5 @@
 from clients.strategy.startegy import *
-from clients.utils.attack_chance import get_expected_casualty
-from math import floor
-
-from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger
+from clients.utils.get_possible_danger import get_surprise_danger
 
 
 class MessStrategy(Strategy):

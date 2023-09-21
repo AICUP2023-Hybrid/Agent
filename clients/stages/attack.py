@@ -1,13 +1,12 @@
 import json
 import online_src
 from clients.game_client import GameClient
-from clients.strategy.mes_strategy import MessStrategy
+from clients.strategy.mess_strategy import MessStrategy
 from clients.strategy.one_surprise_attack import OneSurpriseAttack
 from clients.strategy.plus3_strategy import Plus3Strategy
 from clients.strategy.two_surprise_attack import TwoSurpriseAttack
 from clients.utils.maximize_score import maximize_score
 from clients.utils.update_details import GameData
-f = open(f'log0.txt', 'w')
 game_config = json.load(open('config.json', 'r'))
 
 
