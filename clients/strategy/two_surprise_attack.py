@@ -1,14 +1,7 @@
 import networkx as nx
 from clients.strategy.startegy import *
+from clients.strategy.utils.path_attack_sequence import get_one_path_attack_sequence
 from clients.utils.get_possible_danger import get_two_way_attack
-
-
-def get_one_path_attack_sequence(path):
-    attack_actions = []
-    for i in range(len(path) - 1):
-        attack = AttackAction(src=path[i], dest=path[i + 1], fraction=0, move_fraction=1)
-        attack_actions.append(attack)
-    return attack_actions
 
 
 class TwoSurpriseAttack(Strategy):
