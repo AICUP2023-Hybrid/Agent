@@ -12,11 +12,12 @@ def get_one_path_attack_sequence(path):
 
 
 class TwoSurpriseAttack(Strategy):
-    def __init__(self, game: GameClient | Game):
+    def __init__(self, game: GameClient | Game, condition):
         super().__init__(game)
         self.candidate = None
         self.l1 = 0
         self.l2 = 0
+        self.condition = condition
 
     def put_troops(self) -> List[PutTroopsAction]:
         gdata = self.game.game_data
@@ -100,7 +101,7 @@ class TwoSurpriseAttack(Strategy):
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
         my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
-        consider_condition = (gdata.phase_2_turns > 7 and len(my_strategic) == 2)
+        consider_condition = self.condition
         if not consider_condition:
             return False
 

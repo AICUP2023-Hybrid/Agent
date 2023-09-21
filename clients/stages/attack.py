@@ -28,8 +28,11 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     gdata: GameData = game.game_data
     gdata.update_game_state()
     remaining_troops = gdata.remaining_init[gdata.player_id]
+    strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
+    my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
     # surprise two strategic attack
+    condition = (gdata.phase_2_turns > 7 and len(my_strategic) == 2)
     two_surprise_attack_strategy = TwoSurpriseAttack(game)
     shall_pass = two_surprise_attack_strategy.compute_plan()
     if shall_pass:
