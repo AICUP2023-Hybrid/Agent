@@ -1,5 +1,6 @@
 from clients.strategy.startegy import *
 from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
+from clients.strategy.utils.choose_fort_nodes import get_fort_from_nodes
 from clients.utils.attack_chance import get_expected_casualty
 from math import floor
 
@@ -34,22 +35,7 @@ class OneSurpriseAttack(Strategy):
     def fortify(self) -> Optional[FortAction]:
         gdata = self.game.game_data
         max_path = self.attack_path
-        if not gdata.done_fort and max_path[-1].owner == gdata.player_id and max_path[-1].number_of_troops > 1:
-            danger = get_node_danger(gdata, max_path[-1])
-            if danger > 0:
-                total_count = max_path[-1].number_of_troops
-                fortify_count = 0
-                max_path[-1].save_version()
-                for to_fortify in range(total_count):
-                    max_path[-1].number_of_troops = (total_count - to_fortify) + to_fortify * 2
-                    danger = get_node_danger(gdata, max_path[-1])
-                    if danger <= 0:  # TODO tune this based on the risk
-                        fortify_count = to_fortify
-                        break
-                max_path[-1].restore_version()
-                if fortify_count > 0:
-                    return FortAction(node= max_path[-1], count= fortify_count)
-        return None
+        return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
     def compute_plan(self):
         gdata = self.game.game_data
