@@ -33,7 +33,7 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
 
     # surprise two strategic attack
     condition = (gdata.phase_2_turns > 7 and len(my_strategic) == 2)
-    two_surprise_attack_strategy = TwoSurpriseAttack(game)
+    two_surprise_attack_strategy = TwoSurpriseAttack(game, condition)
     shall_pass = two_surprise_attack_strategy.compute_plan()
     if shall_pass:
         two_surprise_attack_strategy.run_strategy()
