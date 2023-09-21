@@ -49,11 +49,12 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = list(enumerate([ClientAi, ClientAi, ClientAi]))
+    clients = list(enumerate([ClientAi, ClientEnemyTwo, ClientEnemyTwo]))
 
     random.shuffle(clients)
-
-    return [client(kernel, i) for i, client in clients]
+    res = [client(kernel, i) for i, client in clients]
+    kernel.main_game.team_names = [client.__name__() for client in res]
+    return res
 
 
 def get_kernel():

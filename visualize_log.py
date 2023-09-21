@@ -7,10 +7,13 @@ import sys
 from components.game import Game
 from offline_main import read_config
 
-log_url = sys.argv[1]
-response = requests.get(log_url).json()
+if sys.argv[1] != '-f':
+    log_url = sys.argv[1]
+    response = requests.get(log_url).json()
+else:
+    response = json.load(open(sys.argv[1]))
 game = Game()
-game.read_map('./maps/map2.json')
+game.read_map('./maps/map3.json')
 game.config = read_config()
 
 for i in range(3):
