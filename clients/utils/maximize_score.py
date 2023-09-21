@@ -6,7 +6,7 @@ from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 
 
-def maximize_score(game: GameClient, log_file):
+def maximize_score(game: GameClient):
     gdata = game.game_data
     remaining_troops = gdata.remaining_init[gdata.player_id]
     puts = defaultdict(lambda: 0)
@@ -81,7 +81,7 @@ def maximize_score(game: GameClient, log_file):
         exp_sum = sum([exp_cas[nei] for nei in attack_graph.neighbors(node_id)])
         has_attack = False
         for nei in attack_graph.neighbors(node_id):
-            print(game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum), file=log_file)
+            # print(game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum), file=log_file)
             exp_sum -= exp_cas[nei]
             has_attack = True
         if has_attack:

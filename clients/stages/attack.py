@@ -11,25 +11,9 @@ f = open(f'log0.txt', 'w')
 game_config = json.load(open('config.json', 'r'))
 
 
-def attack_path(game: GameClient, path):
-    gdata = game.game_data
-
-    for i in range(len(path) - 1):
-        if path[i].owner != gdata.player_id or path[i].number_of_troops < 2:
-            print('attack chain broke', file=f)
-            break
-        print(game.attack(path[i].id, path[i + 1].id, 0, 1),
-              path[i].id, path[i + 1].id,
-              'troops', path[i].number_of_troops, path[i + 1].number_of_troops,
-              file=f)
-        gdata.update_game_state()
-
-
-def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
+def plan_attack(game: GameClient | online_src.game.Game):
     gdata: GameData = game.game_data
     gdata.update_game_state()
-    remaining_troops = gdata.remaining_init[gdata.player_id]
-    strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
     # surprise two strategic attack
@@ -43,10 +27,7 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     # "get much as territory when last player in last round" strategy
     is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
     if is_last_turn and gdata.player_id == 0:
-        with open('valad.txt', 'a') as rs:
-            print(remaining_troops, len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
-            maximize_score(game, rs)
-            print('got them nodes: ', len([node for node in gdata.nodes if node.owner == gdata.player_id]), file=rs)
+        maximize_score(game)
         return
 
     # surprise one strategic attack
