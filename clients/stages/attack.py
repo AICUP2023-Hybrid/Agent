@@ -1,6 +1,7 @@
 import json
 import online_src
 from clients.game_client import GameClient
+from clients.strategy.mes_strategy import MessStrategy
 from clients.strategy.one_surprise_attack import OneSurpriseAttack
 from clients.strategy.plus3_strategy import Plus3Strategy
 from clients.strategy.two_surprise_attack import TwoSurpriseAttack
@@ -32,7 +33,7 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
     # surprise two strategic attack
-    condition = (gdata.phase_2_turns >= 7 and len(my_strategic) >= 2)
+    condition = (gdata.phase_2_turns > 7 and len(my_strategic) >= 2)
     two_surprise_attack_strategy = TwoSurpriseAttack(game, condition)
     shall_pass = two_surprise_attack_strategy.compute_plan()
     if shall_pass:
@@ -53,6 +54,13 @@ def plan_attack(game: GameClient | online_src.game.Game, should_fort=True):
     shall_pass = one_surprise_attack_strategy.compute_plan()
     if shall_pass:
         one_surprise_attack_strategy.run_strategy()
+        return
+
+    # mess with the opposition
+    mess_strategy = MessStrategy(game)
+    shall_pass = mess_strategy.compute_plan()
+    if shall_pass:
+        mess_strategy.run_strategy()
         return
 
     # +3 force attack

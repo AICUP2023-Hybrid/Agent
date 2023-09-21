@@ -9,10 +9,15 @@ from clients.utils.update_details import GameData
 from components.node import Node
 
 
-def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=False, include_src_troops=False):
+def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=False, include_src_troops=False,
+                        put_all_remaining_troops=True,
+                        troops_to_put=0):
     graph = gdata.get_passable_board_graph(player)
     gdata.update_remaining_troops_by_map()
-    remaining_troops = gdata.remaining_init[player]
+    if put_all_remaining_troops:
+        remaining_troops = gdata.remaining_init[player]
+    else:
+        remaining_troops = min(troops_to_put, gdata.remaining_init[player])
 
     distances = nx.shortest_path_length(graph, target=target.id, weight='weight')
     max_attack_power = -np.Inf
