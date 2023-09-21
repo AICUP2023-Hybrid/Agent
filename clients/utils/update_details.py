@@ -83,14 +83,12 @@ class GameData:
 
     def get_board_graph(self) -> nx.DiGraph:
         graph: nx.DiGraph = nx.DiGraph()
-        expected_casualty = get_expected_casualty()
 
         for node in self.nodes:
             graph.add_node(node)
         for node in self.nodes:
             for nei in node.adj_main_map:
-                graph.add_edge(node.id, nei.id,
-                               weight=1 + expected_casualty[nei.number_of_troops + nei.number_of_fort_troops])
+                graph.add_edge(node.id, nei.id)
         return graph
 
     def get_passable_board_graph(self, player) -> nx.DiGraph:

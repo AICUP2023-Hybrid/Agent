@@ -40,6 +40,8 @@ def balance_troops_between_two_strategics(gdata: GameData, src: Node, dst: Node)
     if len(possible_assigns) == 0:
         if src.score_of_strategic > dst.score_of_strategic:
             return MoveTroopAction(src=src, dest=dst, count=troop_cnt - 1)
+        else:
+            return None
 
     src.save_version()
     dst.save_version()
