@@ -72,7 +72,7 @@ def game_finished(main_game, score):
     main_game.log["team_names"] = main_game.team_names
 
     # generate and save the main_game.log file into a json file in the log folder
-    with open("log/" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json", "w") as log_file:
+    with open(f"log/{main_game.game_id}.json", "w") as log_file:
         json.dump(main_game.log, log_file)
 
     # generate and save an export from main_game object and save in the result log folder

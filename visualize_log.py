@@ -11,9 +11,9 @@ if sys.argv[1] != '-f':
     log_url = sys.argv[1]
     response = requests.get(log_url).json()
 else:
-    response = json.load(open(sys.argv[1]))
+    response = json.load(open(sys.argv[2]))
 game = Game()
-game.read_map('./maps/map3.json')
+game.read_map('./maps/map4.json')
 game.config = read_config()
 
 for i in range(3):
@@ -39,7 +39,7 @@ for _ in range(1, 106):
             player.nodes.append(node)
         last_ind += 1
     game.end_turn()
-    game.visualize(False, None, None)
+    # game.visualize(False, None, None)
 
 for ti, (turn, data) in enumerate(turns_data):
     owners = data['nodes_owner']

@@ -49,7 +49,7 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = list(enumerate([ClientAi, ClientEnemyTwo, ClientEnemyTwo]))
+    clients = list(enumerate([ClientAi, ClientAi, ClientAi]))
 
     random.shuffle(clients)
     res = [client(kernel, i) for i, client in clients]
@@ -92,6 +92,7 @@ def do(i):
     # Creating and running game
     kernel = get_kernel()
     clients = get_clients_random(kernel)
+    kernel.main_game.game_id = i
     wp, end_type = run_game(kernel, clients, game_vis_file_name=f'game{i}' if visualize else None)
 
     enable_print()
@@ -101,7 +102,7 @@ def do(i):
 
 
 def main():
-    n_iterations = 1000
+    n_iterations = 100
     wins = defaultdict(lambda: 0)
     total_by_pos = defaultdict(lambda: [0, 0, 0])
     wins_by_pos = defaultdict(lambda: [0, 0, 0])

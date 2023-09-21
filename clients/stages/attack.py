@@ -40,6 +40,9 @@ def plan_attack(game: GameClient | online_src.game.Game):
     mess_strategy = MessStrategy(game)
     shall_pass = mess_strategy.compute_plan()
     if shall_pass:
+        if isinstance(game, GameClient):
+            with open('log-interesting.txt', 'a') as log_file:
+                print(f'{game.kernel.main_game.game_id}-{gdata.turn_number}', file=log_file)
         mess_strategy.run_strategy()
         return
 
