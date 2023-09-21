@@ -41,8 +41,7 @@ class MessStrategy(Strategy):
                     attack_power, path = get_surprise_danger(
                         gdata, st_node, gdata.player_id,
                         return_max_path=True, include_src_troops=True,
-                        put_all_remaining_troops=True,
-                        troops_to_put=to_place
+                        max_troops_to_put=to_place
                     )
                     final_to_place = to_place
                     # threshold

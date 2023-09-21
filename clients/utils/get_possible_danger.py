@@ -10,14 +10,13 @@ from components.node import Node
 
 
 def get_surprise_danger(gdata: GameData, target: Node, player, return_max_path=False, include_src_troops=False,
-                        put_all_remaining_troops=True,
-                        troops_to_put=0):
+                        max_troops_to_put=None):
     graph = gdata.get_passable_board_graph(player)
     gdata.update_remaining_troops_by_map()
-    if put_all_remaining_troops:
+    if max_troops_to_put is None:
         remaining_troops = gdata.remaining_init[player]
     else:
-        remaining_troops = min(troops_to_put, gdata.remaining_init[player])
+        remaining_troops = min(max_troops_to_put, gdata.remaining_init[player])
 
     distances = nx.shortest_path_length(graph, target=target.id, weight='weight')
     max_attack_power = -np.Inf
