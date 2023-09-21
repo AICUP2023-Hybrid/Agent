@@ -16,4 +16,3 @@ def turn(game):
     game.game_data.stage = 1
     plan_attack(game)
     game.game_data.phase_2_turns += 1
-    game.next_state()
