@@ -30,21 +30,23 @@ class Plus3Strategy(Strategy):
         gdata = self.game.game_data
         # +3 force attack
         expected_casualty = get_expected_casualty()
-        max_score, src, tar = 0, None, None
+        max_score, src, tar, src_troops_to_put = 0, None, None, 0
         for node in gdata.nodes:
             if node.owner not in [gdata.player_id, None]:
                 continue
-            for nei in node.adj_main_map:
-                if nei.owner not in [None, gdata.player_id]:
-                    troops = nei.number_of_troops + nei.number_of_fort_troops
-                    casualty = expected_casualty[troops] + 1
-                    score = 3 - casualty
-                    if max_score < score:
-                        max_score = score
-                        src = node
-                        tar = nei
-        troops_to_put = max(0, int(3 - floor(max_score))) + 2
-        self.troops_to_put = troops_to_put
+            for troops_to_put in range(4):
+                for nei in node.adj_main_map:
+                    if nei.owner not in [None, gdata.player_id]:
+                        attacking_troops = node.number_of_troops + troops_to_put
+                        defending_troops = nei.number_of_troops + nei.number_of_fort_troops
+                        casualty = expected_casualty[defending_troops] + 1
+                        score = 3 - casualty
+                        if max_score < score and attacking_troops - casualty >= 2:
+                            src_troops_to_put = troops_to_put
+                            max_score = score
+                            src = node
+                            tar = nei
+        self.troops_to_put = src_troops_to_put
         self.src = src
         self.tar = tar
         return max_score > 0
