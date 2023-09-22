@@ -63,9 +63,11 @@ class Strategy:
 
     def run_put_troops_strategy(self, go_next_state=True):
         gdata = self.game.game_data
+        remaining_troops = gdata.game.get_number_of_troops_to_put()['number_of_troops']
         for put_troop in self.put_troops():
             if put_troop.number_of_troops > 0:
-                self.game.put_troop(put_troop.node.id, put_troop.number_of_troops)
+                self.game.put_troop(put_troop.node.id,
+                                    min(remaining_troops, put_troop.number_of_troops))
 
         gdata.update_game_state()
         if go_next_state:
