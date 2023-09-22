@@ -49,7 +49,7 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = list(enumerate([ClientAi, ClientAi, ClientAi]))
+    clients = list(enumerate([ClientAi, ClientEnemyTwo, ClientEnemyTwo]))
 
     random.shuffle(clients)
     res = [client(kernel, i) for i, client in clients]
@@ -102,7 +102,7 @@ def do(i):
 
 
 def main():
-    n_iterations = 100
+    n_iterations = 4
     wins = defaultdict(lambda: 0)
     total_by_pos = defaultdict(lambda: [0, 0, 0])
     wins_by_pos = defaultdict(lambda: [0, 0, 0])
