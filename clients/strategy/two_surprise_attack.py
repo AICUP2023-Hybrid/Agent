@@ -92,7 +92,6 @@ class TwoSurpriseAttack(Strategy):
         gdata = self.game.game_data
 
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
-        my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
         consider_condition = self.condition
         if not consider_condition:

@@ -38,12 +38,12 @@ class Plus3Strategy(Strategy):
                 if nei.owner not in [None, gdata.player_id]:
                     troops = nei.number_of_troops + nei.number_of_fort_troops
                     casualty = expected_casualty[troops] + 1
-                    score = node.number_of_troops + 3 - casualty
+                    score = 3 - casualty
                     if max_score < score:
                         max_score = score
                         src = node
                         tar = nei
-        troops_to_put = max(0, int(3 - floor(max_score)))
+        troops_to_put = max(0, int(3 - floor(max_score))) + 2
         self.troops_to_put = troops_to_put
         self.src = src
         self.tar = tar
