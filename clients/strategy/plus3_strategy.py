@@ -45,9 +45,14 @@ class Plus3Strategy(Strategy):
                     if nei.owner not in [None, gdata.player_id]:
                         attacking_troops = node.number_of_troops + troops_to_put
                         defending_troops = nei.number_of_troops + nei.number_of_fort_troops
+                        if defending_troops > 5:  # speed up
+                            continue
+                        attacking_troops = min(attacking_troops, 8)  # speed up
                         casualty = get_expected_casualty_by_troops(attacking_troops, defending_troops) + 1
-                        win_prob = get_win_rate(attacking_troops, defending_troops)
                         loss = casualty + 0.3 * troops_to_put
+                        if 3 - loss < max_score:  # speed up
+                            continue
+                        win_prob = get_win_rate(attacking_troops, defending_troops)
                         score = win_prob * 3 - loss
                         if max_score < score:
                             src_troops_to_put = troops_to_put
