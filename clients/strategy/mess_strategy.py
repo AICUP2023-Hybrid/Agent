@@ -3,6 +3,7 @@ import numpy as np
 from clients.strategy.startegy import *
 from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.strategy.utils.path_attack_sequence import get_one_path_attack_sequence
+from clients.utils.attack_chance import get_expected_casualty
 from clients.utils.get_possible_danger import get_surprise_danger, get_min_loss_path
 
 
@@ -43,13 +44,14 @@ class MessStrategy(Strategy):
             n_strategics = len(strategics)
 
             troops_to_put, best_score, best_path = 0, 0, []
+            attack_power_threshold = 3
             for st_node in strategics:
                 final_to_place, loss, path = 0, np.Inf, []
                 for to_place in range(remaining_troops + 1):
                     loss, path = get_min_loss_path(
                         gdata, st_node, gdata.player_id,
                         max_troops_to_put=to_place,
-                        attack_power_threshold=3
+                        attack_power_threshold=attack_power_threshold
                     )
                     final_to_place = to_place
                     # threshold
@@ -60,7 +62,7 @@ class MessStrategy(Strategy):
 
                 # +3 for troops gain after attack
                 p_gain = st_node.score_of_strategic * 0.75
-                score = p_gain - loss + 3
+                score = p_gain - loss + 3 - attack_power_threshold
                 if best_score <= score:
                     troops_to_put = final_to_place
                     best_score = score
