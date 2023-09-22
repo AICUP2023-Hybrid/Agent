@@ -43,6 +43,6 @@ def balance_troops_between_two_strategics(gdata: GameData, src: Node, dst: Node)
 
     if min_danger > 0 and src.score_of_strategic > dst.score_of_strategic:
         return MoveTroopAction(src=src, dest=dst, count=troop_cnt - 1)
-    if min_danger > 0 and move_troops > 0:
+    if move_troops > 0:
         return MoveTroopAction(src=src, dest=dst, count=move_troops)
     return None
