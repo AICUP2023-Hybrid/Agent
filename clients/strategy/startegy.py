@@ -73,15 +73,18 @@ class Strategy:
 
     def run_attack_strategy(self, go_next_state=True):
         gdata = self.game.game_data
+        attack_succeeded = True
         for attack in self.attacks():
             if attack.src.owner != self.game.game_data.player_id or attack.src.number_of_troops < 2:
                 print('attack chain broke', file=f)
+                attack_succeeded = False
                 continue
             self.game.attack(attack.src.id, attack.dest.id, attack.fraction, attack.move_fraction)
             gdata.update_game_state()
 
         if go_next_state:
             self.game.next_state()
+        return attack_succeeded
 
     def run_move_troops_strategy(self, go_next_state=True):
         gdata = self.game.game_data
