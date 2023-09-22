@@ -45,11 +45,4 @@ def plan_attack(game: GameClient | online_src.game.Game):
 
     # +3 force attack
     plus3_strategy = Plus3Strategy(game)
-    shall_pass = plus3_strategy.compute_plan()
-    if shall_pass:
-        if isinstance(game, GameClient):
-            with open('log-interesting.txt', 'a') as log_file:
-                print(f'{game.kernel.main_game.game_id}-{gdata.turn_number} / {plus3_strategy.put_troops()[0].number_of_troops}',
-                      file=log_file)
-        plus3_strategy.run_strategy()
-        return
+    plus3_strategy.run_strategy_until_success()

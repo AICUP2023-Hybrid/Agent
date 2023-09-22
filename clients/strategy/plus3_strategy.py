@@ -26,14 +26,21 @@ class Plus3Strategy(Strategy):
     def fortify(self) -> Optional[FortAction]:
         return None
 
-    def compute_plan(self):
+    def compute_plan(self, attempt=0):
         gdata = self.game.game_data
         # +3 force attack
         max_score, src, tar, src_troops_to_put = 0, None, None, 0
+
+        max_range = 1
+        if attempt == 0:
+            max_range = 4
+        elif attempt == 1:
+            max_range = 1
+
         for node in gdata.nodes:
             if node.owner not in [gdata.player_id, None]:
                 continue
-            for troops_to_put in range(4):
+            for troops_to_put in range(max_range):
                 for nei in node.adj_main_map:
                     if nei.owner not in [None, gdata.player_id]:
                         attacking_troops = node.number_of_troops + troops_to_put

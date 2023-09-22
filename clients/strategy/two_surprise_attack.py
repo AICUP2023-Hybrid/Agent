@@ -88,7 +88,7 @@ class TwoSurpriseAttack(Strategy):
     def fortify(self) -> Optional[FortAction]:
         return None
 
-    def compute_plan(self):
+    def compute_plan(self, attempt=0):
         gdata = self.game.game_data
 
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
