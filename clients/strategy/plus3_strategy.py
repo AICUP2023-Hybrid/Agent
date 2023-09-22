@@ -1,5 +1,5 @@
 from clients.strategy.startegy import *
-from clients.utils.attack_chance import get_expected_casualty
+from clients.utils.attack_chance import get_expected_casualty, get_expected_casualty_by_troops, get_win_rate
 from math import floor
 
 
@@ -29,8 +29,7 @@ class Plus3Strategy(Strategy):
     def compute_plan(self):
         gdata = self.game.game_data
         # +3 force attack
-        expected_casualty = get_expected_casualty()
-        max_score, src, tar, src_troops_to_put = 0, None, None, 0
+        min_loss, src, tar, src_troops_to_put = 3, None, None, 0
         for node in gdata.nodes:
             if node.owner not in [gdata.player_id, None]:
                 continue
@@ -39,14 +38,15 @@ class Plus3Strategy(Strategy):
                     if nei.owner not in [None, gdata.player_id]:
                         attacking_troops = node.number_of_troops + troops_to_put
                         defending_troops = nei.number_of_troops + nei.number_of_fort_troops
-                        casualty = expected_casualty[defending_troops] + 1
-                        score = 3 - casualty
-                        if max_score < score and attacking_troops - casualty >= 2:
+                        casualty = get_expected_casualty_by_troops(attacking_troops, defending_troops) + 1
+                        win_rate = get_win_rate(attacking_troops, defending_troops)
+                        loss = casualty + 0.3 * troops_to_put
+                        if loss < min_loss and win_rate >= 0.9:
                             src_troops_to_put = troops_to_put
-                            max_score = score
+                            min_loss = loss
                             src = node
                             tar = nei
         self.troops_to_put = src_troops_to_put
         self.src = src
         self.tar = tar
-        return max_score > 0
+        return tar is not None
