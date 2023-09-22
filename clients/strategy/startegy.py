@@ -78,7 +78,6 @@ class Strategy:
         attack_succeeded = True
         for attack in self.attacks():
             if attack.src.owner != self.game.game_data.player_id or attack.src.number_of_troops < 2:
-                print('attack chain broke', file=f)
                 attack_succeeded = False
                 continue
             self.game.attack(attack.src.id, attack.dest.id, attack.fraction, attack.move_fraction)
@@ -127,21 +126,15 @@ class Strategy:
         if not plan_exists:
             return False
         self.run_put_troops_strategy(go_next_state=True)
-
+        cnt = 0
         while plan_exists:
             attack_succeeded = self.run_attack_strategy(go_next_state=False)
             if attack_succeeded:
-
-                if isinstance(self.game, GameClient):
-                    with open('log-interesting.txt', 'a') as log_file:
-                        print(
-                            f'{self.game.kernel.main_game.game_id}-{gdata.turn_number}',
-                            file=log_file)
-
                 self.game.next_state()
                 self.run_move_troops_strategy(go_next_state=True)
                 self.run_fortify_strategy(go_next_state=True)
                 return True
             # find a plan again if the attack didn't succeed
             plan_exists = self.compute_plan(attempt=1)
+            cnt += 1
         return False
