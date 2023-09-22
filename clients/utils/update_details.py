@@ -78,7 +78,7 @@ class GameData:
         for i in range(self.player_cnt):
             if i == self.player_id:
                 continue
-            self.later_added[i] = n_nodes_belonging[i] // 4 + n_strategic_belonging[i]
+            self.later_added[i] = n_nodes_belonging[i] // 4 + n_strategic_belonging[i] + 3
             self.remaining_init[i] = self.later_added[i]  # temporary substitute for remaining troops
 
     def get_board_graph(self) -> nx.DiGraph:
