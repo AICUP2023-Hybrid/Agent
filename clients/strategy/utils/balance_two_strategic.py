@@ -9,7 +9,7 @@ from components.node import Node
 
 def get_node_attack_advantage(gdata: GameData, node: Node):
     graph = gdata.get_passable_board_graph(node.number_of_troops)
-    shortest_paths = nx.shortest_path_length(graph, source=node.id)
+    shortest_paths = nx.shortest_path_length(graph, source=node.id, weight="weight")
     targets = [n for n in gdata.nodes if n.is_strategic and n.owner != node.owner and n.id in shortest_paths]
 
     score = 0
