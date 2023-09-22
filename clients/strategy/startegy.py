@@ -114,18 +114,14 @@ class Strategy:
     def run_strategy(self):
         self.run_put_troops_strategy(go_next_state=True)
 
-        attack_succeeded = self.run_attack_strategy(go_next_state=True)
-
-        if not attack_succeeded:
-            return False
+        self.run_attack_strategy(go_next_state=True)
 
         self.run_move_troops_strategy(go_next_state=True)
 
         self.run_fortify_strategy(go_next_state=True)
 
-        return True
-
     def run_strategy_until_success(self):
+        gdata = self.game.game_data
         # initial attempt (put troops section)
         plan_exists = self.compute_plan(attempt=0)
         if not plan_exists:
@@ -135,6 +131,13 @@ class Strategy:
         while plan_exists:
             attack_succeeded = self.run_attack_strategy(go_next_state=False)
             if attack_succeeded:
+
+                if isinstance(self.game, GameClient):
+                    with open('log-interesting.txt', 'a') as log_file:
+                        print(
+                            f'{self.game.kernel.main_game.game_id}-{gdata.turn_number}',
+                            file=log_file)
+
                 self.game.next_state()
                 self.run_move_troops_strategy(go_next_state=True)
                 self.run_fortify_strategy(go_next_state=True)
