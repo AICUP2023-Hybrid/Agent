@@ -58,7 +58,7 @@ class Strategy:
         pass
 
     @abstractmethod
-    def compute_plan(self):
+    def compute_plan(self, attempt=0):
         pass
 
     def run_put_troops_strategy(self, go_next_state=True):
@@ -114,8 +114,31 @@ class Strategy:
     def run_strategy(self):
         self.run_put_troops_strategy(go_next_state=True)
 
-        self.run_attack_strategy(go_next_state=True)
+        attack_succeeded = self.run_attack_strategy(go_next_state=True)
+
+        if not attack_succeeded:
+            return False
 
         self.run_move_troops_strategy(go_next_state=True)
 
         self.run_fortify_strategy(go_next_state=True)
+
+        return True
+
+    def run_strategy_until_success(self):
+        # initial attempt (put troops section)
+        plan_exists = self.compute_plan(attempt=0)
+        if not plan_exists:
+            return False
+        self.run_put_troops_strategy(go_next_state=True)
+
+        while plan_exists:
+            attack_succeeded = self.run_attack_strategy(go_next_state=False)
+            if attack_succeeded:
+                self.game.next_state()
+                self.run_move_troops_strategy(go_next_state=True)
+                self.run_fortify_strategy(go_next_state=True)
+                return True
+            # find a plan again if the attack didn't succeed
+            plan_exists = self.compute_plan(attempt=1)
+        return False

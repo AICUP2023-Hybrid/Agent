@@ -28,7 +28,7 @@ class MessStrategy(Strategy):
     def fortify(self) -> Optional[FortAction]:
         return None
 
-    def compute_plan(self):
+    def compute_plan(self,attempt=0):
         gdata = self.game.game_data
 
         remaining_troops = gdata.remaining_init[gdata.player_id]

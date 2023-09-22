@@ -37,7 +37,7 @@ class OneSurpriseAttack(Strategy):
         max_path = self.attack_path
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
-    def compute_plan(self):
+    def compute_plan(self, attempt=0):
         gdata = self.game.game_data
 
         remaining_troops = gdata.remaining_init[gdata.player_id]
