@@ -29,7 +29,7 @@ class Plus3Strategy(Strategy):
     def compute_plan(self):
         gdata = self.game.game_data
         # +3 force attack
-        min_loss, src, tar, src_troops_to_put = 3, None, None, 0
+        max_score, src, tar, src_troops_to_put = 0, None, None, 0
         for node in gdata.nodes:
             if node.owner not in [gdata.player_id, None]:
                 continue
@@ -39,11 +39,12 @@ class Plus3Strategy(Strategy):
                         attacking_troops = node.number_of_troops + troops_to_put
                         defending_troops = nei.number_of_troops + nei.number_of_fort_troops
                         casualty = get_expected_casualty_by_troops(attacking_troops, defending_troops) + 1
-                        win_rate = get_win_rate(attacking_troops, defending_troops)
+                        win_prob = get_win_rate(attacking_troops, defending_troops)
                         loss = casualty + 0.3 * troops_to_put
-                        if loss < min_loss and win_rate >= 0.9:
+                        score = win_prob * 3 - loss
+                        if max_score < score:
                             src_troops_to_put = troops_to_put
-                            min_loss = loss
+                            max_score = score
                             src = node
                             tar = nei
         self.troops_to_put = src_troops_to_put

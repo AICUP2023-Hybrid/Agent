@@ -40,9 +40,6 @@ def plan_attack(game: GameClient | online_src.game.Game):
     mess_strategy = MessStrategy(game)
     shall_pass = mess_strategy.compute_plan()
     if shall_pass:
-        if isinstance(game, GameClient):
-            with open('log-interesting.txt', 'a') as log_file:
-                print(f'{game.kernel.main_game.game_id}-{gdata.turn_number}', file=log_file)
         mess_strategy.run_strategy()
         return
 
@@ -50,5 +47,9 @@ def plan_attack(game: GameClient | online_src.game.Game):
     plus3_strategy = Plus3Strategy(game)
     shall_pass = plus3_strategy.compute_plan()
     if shall_pass:
+        if isinstance(game, GameClient):
+            with open('log-interesting.txt', 'a') as log_file:
+                print(f'{game.kernel.main_game.game_id}-{gdata.turn_number} / {plus3_strategy.put_troops()[0].number_of_troops}',
+                      file=log_file)
         plus3_strategy.run_strategy()
         return
