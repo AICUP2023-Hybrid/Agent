@@ -80,7 +80,7 @@ def get_expected_casualty():
             for pr, prob in get_chances(d + 5, d, 0):
                 expected_remain += pr[0] * prob
             expected_casualty.append(d + 5 - expected_remain)
-        for i in range(45, 400):
+        for i in range(20, 400):
             expected_casualty.append(0.688 * i)  # good approx
     return expected_casualty
 
