@@ -145,7 +145,7 @@ class OneSurpriseAttack(Strategy):
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
         my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
-        bypass_danger = len(my_strategic) == 3 and gdata.phase_2_turns > 7
+        bypass_danger = len(my_strategic) == 3 and gdata.turn_number >= 126
         max_strategics, max_owner = -1, None
         for pi in range(gdata.player_cnt):
             if pi == gdata.player_id:
