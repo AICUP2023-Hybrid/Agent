@@ -1,8 +1,9 @@
+import networkx as nx
+import numpy as np
+
 from clients.strategy.startegy import *
 from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.strategy.utils.choose_fort_nodes import get_fort_from_nodes
-from clients.utils.attack_chance import get_expected_casualty
-from math import floor
 
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger
 
@@ -37,61 +38,131 @@ class OneSurpriseAttack(Strategy):
         max_path = self.attack_path
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
-    def compute_plan(self, attempt=0):
+    def get_scenario_danger(self, path: List[Node], attack_power: int, strategic_src_matter=True):
         gdata = self.game.game_data
+        src, tar = path[0], path[-1]
+        for node in path:
+            node.save_version()
+            node.owner = gdata.player_id
+            node.number_of_troops = 1
+        danger = np.Inf
+        if not src.is_strategic or not strategic_src_matter:
+            tar.number_of_troops = int(attack_power if gdata.done_fort else 2 * attack_power - 1)
+            danger = min(danger, get_node_danger(gdata, tar))
+        else:
+            danger = min(danger, balance_troops_between_two_strategics(gdata, tar, src, return_danger=True)[1])
 
-        remaining_troops = gdata.remaining_init[gdata.player_id]
+        for node in path:
+            node.restore_version()
+        return danger
+
+    # TODO define some theoretical basis for this
+    def calculate_gain(self, opposition):
+        gdata = self.game.game_data
+        other_opposition = [i for i in range(3) if i != opposition and i != gdata.player_id][0]
+        player_troop_gains = [0, 0, 0]
+        for node in gdata.nodes:
+            if node.owner is None:
+                continue
+            player_troop_gains[node.owner] += node.score_of_strategic + 0.25
+        for i in range(3):
+            player_troop_gains[i] = int(player_troop_gains[i])
+        if min(player_troop_gains[gdata.player_id] * 1.5, 10) < player_troop_gains[opposition]:
+            if player_troop_gains[other_opposition] - player_troop_gains[gdata.player_id] > 3:
+                return 0.25
+            else:
+                return 0.75
+        return 0.5
+
+    def get_trade_off_score(self, path: List[Node], attack_power: int):
+        if attack_power < 2:  # TODO tune the safety threshold for attack power
+            return -np.Inf
+        danger = self.get_scenario_danger(path, attack_power, strategic_src_matter=False)
+        if danger > 0:
+            return -np.Inf
+        src, tar = path[0], path[-1]
+        return tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)) - src.score_of_strategic
+
+    def get_hold_score(self, path: List[Node], attack_power: int):
+        if attack_power < 2:  # TODO tune the safety threshold for attack power
+            return -np.Inf
+        danger = self.get_scenario_danger(path, attack_power, strategic_src_matter=True)
+        if danger > 0:
+            return -np.Inf
+        tar = path[-1]
+        return tar.score_of_strategic * (1 + self.calculate_gain(tar.owner))
+
+    def check_attack_pairs(self, max_troops_to_put=None):
+        gdata = self.game.game_data
+        graph = gdata.get_passable_board_graph(gdata.player_id)
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
-        my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
+        troops_to_put = gdata.remaining_init[gdata.player_id]
+        if max_troops_to_put is not None:
+            troops_to_put = min(troops_to_put, max_troops_to_put)
 
-        max_attack_power, max_path = 0, []
+        trade_off_plan = (-np.Inf, None)
+        hold_plan = (-np.Inf, None)
+        for target in strategic_nodes:
+            paths = nx.shortest_path(graph, target=target.id, weight='weight')
+            paths_length = nx.shortest_path_length(graph, target=target.id, weight='weight')
+            for src in [n for n in gdata.nodes if n.owner in [gdata.player_id, None] and n.id in paths]:
+                attack_power = src.number_of_troops + troops_to_put - paths_length[src.id]
+                path = [gdata.nodes[x] for x in paths[src.id]]
+                trade_off_score = self.get_trade_off_score(path, attack_power)
+                hold_score = self.get_hold_score(path, attack_power)
+                if trade_off_score > trade_off_plan[0]:
+                    trade_off_plan = (trade_off_score, path)
+                if hold_score > hold_plan[0]:
+                    hold_plan = (hold_score, path)
+        return trade_off_plan, hold_plan
+
+    def check_only_capture_attack(self, bypass_by_owner=None):
+        gdata = self.game.game_data
+        strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
+
+        max_attack_power, max_path = 0, None
         for st_node in strategic_nodes:
             attack_power, path = get_surprise_danger(
                 gdata, st_node, gdata.player_id,
                 return_max_path=True, include_src_troops=True
             )
-            path: List[Node]
-            if len(path) == 0 or attack_power < 1:
+            if len(path) == 0:
                 continue
-            for node in path:
-                node.save_version()
-                node.owner = gdata.player_id
-                node.number_of_troops = 1
-
-            danger = 1000
-            for i in range(0 if path[0].is_strategic else int(attack_power), int(attack_power) + 1):
-                path[0].number_of_troops = int(attack_power) - i + 1
-                # fort can't be done to all troops according to game rules so in the next line we have 1 + i * 2
-                path[-1].number_of_troops = i + 1 if gdata.done_fort else 1 + i * 2
-                if path[0].is_strategic:
-                    danger = min(danger, max(get_node_danger(gdata, path[0]), get_node_danger(gdata, st_node)))
-                else:
-                    danger = min(danger, get_node_danger(gdata, st_node))
-
-            for node in path:
-                node.restore_version()
-            bypass_danger = len(my_strategic) == 3 and gdata.phase_2_turns > 7
-
-            max_strategics, max_owner = -1, None
-            for pi in range(gdata.player_cnt):
-                if pi == gdata.player_id:
-                    continue
-                num_stra = len([n for n in strategic_nodes if n.owner == pi])
-                if max_strategics < num_stra:
-                    max_strategics = num_stra
-                    max_owner = pi
-            # last chance before losing
-            if gdata.turn_number >= 124 and max_strategics >= 4 and path[-1].owner == max_owner:
-                bypass_danger = True
-            if path[-1].owner != max_owner and gdata.turn_number >= 124 and max_strategics >= 4:
+            if bypass_by_owner is not None and path[-1].owner != bypass_by_owner:
                 continue
-
-            if danger > 0 and not bypass_danger:
-                continue
-
             if max_attack_power < attack_power:
                 max_attack_power = attack_power
                 max_path = path
-        self.attack_path = max_path
-        self.troops_to_put = remaining_troops
-        return len(max_path) > 0
+        return max_attack_power, max_path
+
+    def compute_plan(self, attempt=0):
+        gdata = self.game.game_data
+        strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
+        my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
+
+        bypass_danger = len(my_strategic) == 3 and gdata.phase_2_turns > 7
+        max_strategics, max_owner = -1, None
+        for pi in range(gdata.player_cnt):
+            if pi == gdata.player_id:
+                continue
+            num_stra = len([n for n in strategic_nodes if n.owner == pi])
+            if max_strategics < num_stra:
+                max_strategics = num_stra
+                max_owner = pi
+        # last chance before losing
+        if gdata.turn_number >= 124 and max_strategics >= 4:
+            bypass_danger = True
+
+        chosen_plan = (-np.Inf, None)
+        if bypass_danger:
+            chosen_plan = self.check_only_capture_attack(
+                bypass_by_owner=max_owner if max_strategics >= 4 else None
+            )
+        else:
+            plans = self.check_attack_pairs(gdata.remaining_init[gdata.player_id])
+            for plan in plans:
+                if plan[1] is not None and chosen_plan[0] < plan[0]:
+                    chosen_plan = plan
+        self.troops_to_put = gdata.remaining_init[gdata.player_id]
+        self.attack_path = chosen_plan[1]
+        return self.attack_path is not None

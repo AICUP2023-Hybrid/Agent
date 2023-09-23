@@ -49,7 +49,7 @@ def get_clients(kernel, player_turn: int) -> List[Any]:
 
 
 def get_clients_random(kernel, *args, **kwargs):
-    clients = list(enumerate([ClientAi, ClientEnemyTwo, ClientEnemyTwo]))
+    clients = list(enumerate([ClientAi, ClientAi, ClientEnemyTwo]))
 
     random.shuffle(clients)
     res = [client(kernel, i) for i, client in clients]
@@ -102,14 +102,14 @@ def do(i):
 
 
 def main():
-    n_iterations = 4
+    n_iterations = 100
     wins = defaultdict(lambda: 0)
     total_by_pos = defaultdict(lambda: [0, 0, 0])
     wins_by_pos = defaultdict(lambda: [0, 0, 0])
     by_score = defaultdict(lambda: [0, 0, 0])
     by_strategic = defaultdict(lambda: [0, 0, 0])
     losses_list = []
-    for wp, end_type, client_names in process_map(do, range(n_iterations), max_workers=8):
+    for wp, end_type, client_names in [do(0)]:  # process_map(do, range(n_iterations), max_workers=8):
         wins[client_names[wp]] += 1
         wins_by_pos[client_names[wp]][wp] += 1
         if end_type == 'by_score':
