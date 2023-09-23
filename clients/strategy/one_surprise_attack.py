@@ -67,11 +67,16 @@ class OneSurpriseAttack(Strategy):
             player_troop_gains[node.owner] += node.score_of_strategic + 0.25
         for i in range(3):
             player_troop_gains[i] = int(player_troop_gains[i])
-        if min(player_troop_gains[gdata.player_id] * 1.5, 10) < player_troop_gains[opposition]:
-            if player_troop_gains[other_opposition] - player_troop_gains[gdata.player_id] > 3:
-                return 0.25
+        my_gain = player_troop_gains[gdata.player_id]
+        op_gain = player_troop_gains[opposition]
+        oop_gain = player_troop_gains[other_opposition]
+        if min(my_gain * 1.5, 10) < op_gain:
+            if oop_gain - my_gain > 3:
+                return 0
+            elif my_gain - op_gain > 4:
+                return 0.8
             else:
-                return 0.75
+                return 0.5
         return 0.5
 
     def get_trade_off_score(self, path: List[Node], attack_power: int):
