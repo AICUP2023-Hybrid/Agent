@@ -57,12 +57,18 @@ for ti, (turn, data) in enumerate(turns_data):
 
     player_id = game.start_turn()
     player = game.players[player_id]
-    game.log_attack = data['attack']
-    game.end_turn()
-    game.visualize(ti == len(turns_data) - 1, winner, None)
     for item in data['add_troop']:
         node_id, troop_cnt = item
         player.number_of_troops_to_place -= troop_cnt
+        game.nodes[node_id].number_of_troops += troop_cnt
+        game.nodes[node_id].owner = player
+        if game.nodes[node_id] not in player.nodes:
+            player.nodes.append(game.nodes[node_id])
+
+    game.log_attack = data['attack']
+    game.end_turn()
+    game.visualize(ti == len(turns_data) - 1, winner, None)
+
     for item in data['attack']:
         target = item['target']
         new_owner = item['new_target_owner']
