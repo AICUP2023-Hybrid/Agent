@@ -76,7 +76,7 @@ class OneSurpriseAttack(Strategy):
 
     def get_trade_off_score(self, path: List[Node], attack_power: int):
         # it should be a little higher because trade off is a risky move
-        if attack_power < 4:  # TODO tune the safety threshold for attack power
+        if attack_power < 2:  # TODO tune the safety threshold for attack power
             return -np.Inf
         danger = self.get_scenario_danger(path, attack_power, strategic_src_matter=False)
         if danger > 0:
@@ -101,8 +101,8 @@ class OneSurpriseAttack(Strategy):
         if max_troops_to_put is not None:
             troops_to_put = min(troops_to_put, max_troops_to_put)
 
-        trade_off_plan = (-np.Inf, None, np.Inf)
-        hold_plan = (-np.Inf, None, np.Inf)
+        trade_off_plan = (None, (-np.Inf, -np.Inf, -np.Inf))
+        hold_plan = (None, (-np.Inf, -np.Inf, -np.Inf))
         for target in strategic_nodes:
             paths = nx.shortest_path(graph, target=target.id, weight='weight')
             paths_length = nx.shortest_path_length(graph, target=target.id, weight='weight')
@@ -112,11 +112,13 @@ class OneSurpriseAttack(Strategy):
                 trade_off_score = self.get_trade_off_score(path, attack_power)
                 hold_score = self.get_hold_score(path, attack_power)
                 if trade_off_score != -np.Inf:
-                    if trade_off_score > trade_off_plan[0] or (trade_off_score == trade_off_plan[0] and paths_length[src.id] < trade_off_plan[2]):
-                        trade_off_plan = (trade_off_score, path, paths_length[src.id])
+                    score = (trade_off_score, -paths_length[src.id], attack_power)
+                    if trade_off_plan[1] < score:
+                        trade_off_plan = (path, score)
                 if hold_score != -np.Inf:
-                    if hold_score > hold_plan[0] or (hold_score == hold_plan[0] and paths_length[src.id] < hold_plan[2]):
-                        hold_plan = (hold_score, path, paths_length[src.id])
+                    score = (hold_score, -paths_length[src.id], attack_power)
+                    if hold_plan[1] < score:
+                        hold_plan = (path, score)
         return trade_off_plan, hold_plan
 
     def check_only_capture_attack(self, bypass_by_owner=None):
@@ -136,7 +138,7 @@ class OneSurpriseAttack(Strategy):
             if max_attack_power < attack_power:
                 max_attack_power = attack_power
                 max_path = path
-        return max_attack_power, max_path
+        return max_path, max_attack_power
 
     def compute_plan(self, attempt=0):
         gdata = self.game.game_data
@@ -156,7 +158,7 @@ class OneSurpriseAttack(Strategy):
         if gdata.turn_number >= 124 and max_strategics >= 4:
             bypass_danger = True
 
-        chosen_plan = (-np.Inf, None)
+        chosen_plan = (None, (-np.Inf, -np.Inf, -np.Inf))
         if bypass_danger:
             chosen_plan = self.check_only_capture_attack(
                 bypass_by_owner=max_owner if max_strategics >= 4 else None
@@ -164,8 +166,8 @@ class OneSurpriseAttack(Strategy):
         else:
             plans = self.check_attack_pairs(gdata.remaining_init[gdata.player_id])
             for plan in plans:
-                if plan[1] is not None and chosen_plan[0] < plan[0]:
+                if plan[0] is not None and chosen_plan[1] < plan[1]:
                     chosen_plan = plan
         self.troops_to_put = gdata.remaining_init[gdata.player_id]
-        self.attack_path = chosen_plan[1]
+        self.attack_path = chosen_plan[0]
         return self.attack_path is not None
