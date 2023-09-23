@@ -75,7 +75,8 @@ class OneSurpriseAttack(Strategy):
         return 0.5
 
     def get_trade_off_score(self, path: List[Node], attack_power: int):
-        if attack_power < 2:  # TODO tune the safety threshold for attack power
+        # it should be a little higher because trade off is a risky move
+        if attack_power < 4:  # TODO tune the safety threshold for attack power
             return -np.Inf
         danger = self.get_scenario_danger(path, attack_power, strategic_src_matter=False)
         if danger > 0:
@@ -100,8 +101,8 @@ class OneSurpriseAttack(Strategy):
         if max_troops_to_put is not None:
             troops_to_put = min(troops_to_put, max_troops_to_put)
 
-        trade_off_plan = (-np.Inf, None)
-        hold_plan = (-np.Inf, None)
+        trade_off_plan = (-np.Inf, None, np.Inf)
+        hold_plan = (-np.Inf, None, np.Inf)
         for target in strategic_nodes:
             paths = nx.shortest_path(graph, target=target.id, weight='weight')
             paths_length = nx.shortest_path_length(graph, target=target.id, weight='weight')
@@ -110,10 +111,12 @@ class OneSurpriseAttack(Strategy):
                 path = [gdata.nodes[x] for x in paths[src.id]]
                 trade_off_score = self.get_trade_off_score(path, attack_power)
                 hold_score = self.get_hold_score(path, attack_power)
-                if trade_off_score > trade_off_plan[0]:
-                    trade_off_plan = (trade_off_score, path)
-                if hold_score > hold_plan[0]:
-                    hold_plan = (hold_score, path)
+                if trade_off_score != -np.Inf:
+                    if trade_off_score > trade_off_plan[0] or (trade_off_score == trade_off_plan[0] and paths_length[src.id] < trade_off_plan[2]):
+                        trade_off_plan = (trade_off_score, path, paths_length[src.id])
+                if hold_score != -np.Inf:
+                    if hold_score > hold_plan[0] or (hold_score == hold_plan[0] and paths_length[src.id] < hold_plan[2]):
+                        hold_plan = (hold_score, path, paths_length[src.id])
         return trade_off_plan, hold_plan
 
     def check_only_capture_attack(self, bypass_by_owner=None):
