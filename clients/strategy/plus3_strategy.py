@@ -52,7 +52,7 @@ class Plus3Strategy(Strategy):
                         attacking_troops = min(attacking_troops, 8)  # speed up
                         casualty = get_expected_casualty_by_troops(attacking_troops, defending_troops) + 1
                         new_troop_remain = troops_to_put - max(0, casualty - node.number_of_troops)
-                        loss = casualty + 0.3 * new_troop_remain
+                        loss = casualty + 0.15 * new_troop_remain
                         if 3 - loss < max_score:  # speed up
                             continue
                         win_prob = get_win_rate(attacking_troops, defending_troops)
