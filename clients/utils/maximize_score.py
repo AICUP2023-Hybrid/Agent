@@ -82,6 +82,10 @@ def maximize_score(game: GameClient):
         has_attack = False
         for nei in attack_graph.neighbors(node_id):
             # print(game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum), file=log_file)
+            try:
+                game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum)
+            except:
+                pass
             exp_sum -= exp_cas[nei]
             has_attack = True
         if has_attack:

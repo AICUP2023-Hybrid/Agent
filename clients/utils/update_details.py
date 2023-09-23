@@ -1,3 +1,4 @@
+import copy
 from typing import List
 
 import networkx as nx
@@ -18,7 +19,8 @@ class GameData:
         self.player_cnt = 3
         self.game = game
         self.remaining_init = [35, 35, 35]
-        self.later_added = [0,0,0]
+        self.temp_phase0_remains = [0, 0, 0]
+        self.later_added = [0, 0, 0]
         self.stage = 0
         self.phase_2_turns = 1
         self.turn_number = None
@@ -60,6 +62,7 @@ class GameData:
                 if node.owner is None:
                     continue
                 self.remaining_init[node.owner] -= node.number_of_troops
+            self.temp_phase0_remains = copy.deepcopy(self.remaining_init)
         else:
             self.remaining_init = [0, 0, 0]
             self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
@@ -80,6 +83,8 @@ class GameData:
                 continue
             self.later_added[i] = n_nodes_belonging[i] // 4 + n_strategic_belonging[i] + 3
             self.remaining_init[i] = self.later_added[i]  # temporary substitute for remaining troops
+            if self.phase_2_turns == 1:
+                self.remaining_init[i] += self.temp_phase0_remains[i]
 
     def get_board_graph(self) -> nx.DiGraph:
         graph: nx.DiGraph = nx.DiGraph()
@@ -104,4 +109,3 @@ class GameData:
                     continue
                 graph.add_edge(node.id, nei.id, weight=weight)
         return graph
-

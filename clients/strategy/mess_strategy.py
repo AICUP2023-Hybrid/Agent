@@ -44,7 +44,7 @@ class MessStrategy(Strategy):
             n_strategics = len(strategics)
 
             troops_to_put, best_score, best_path = 0, 0, []
-            attack_power_threshold = 3
+            attack_power_threshold = 2
             for st_node in strategics:
                 final_to_place, loss, path = 0, np.Inf, []
                 for to_place in range(remaining_troops + 1):
