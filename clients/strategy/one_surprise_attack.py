@@ -11,6 +11,8 @@ from clients.utils.get_possible_danger import get_surprise_danger, get_node_dang
 class OneSurpriseAttack(Strategy):
     def __init__(self, game: GameClient | Game):
         super().__init__(game)
+        self.can_move = None
+        self.can_fort = None
         self.troops_to_put = 0
         self.attack_path = None
 
@@ -28,12 +30,16 @@ class OneSurpriseAttack(Strategy):
         return attack_actions
 
     def move_troop(self) -> Optional[MoveTroopAction]:
+        if not self.can_move:
+            return None
         gdata = self.game.game_data
         max_path = self.attack_path
         if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
             return balance_troops_between_two_strategics(gdata, max_path[-1], max_path[0])
 
     def fortify(self) -> Optional[FortAction]:
+        if not self.can_fort:
+            return None
         gdata = self.game.game_data
         max_path = self.attack_path
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
@@ -46,11 +52,18 @@ class OneSurpriseAttack(Strategy):
             node.owner = gdata.player_id
             node.number_of_troops = 1
         danger = np.Inf
-        if not src.is_strategic or not strategic_src_matter:
-            tar.number_of_troops = int(attack_power if gdata.done_fort else 2 * attack_power - 1)
+        if not src.is_strategic or not strategic_src_matter or not self.can_move:
+            tar.number_of_troops = int(
+                attack_power
+                if gdata.done_fort or not self.can_fort else
+                2 * attack_power - 1
+            )
             danger = min(danger, get_node_danger(gdata, tar))
         else:
-            danger = min(danger, balance_troops_between_two_strategics(gdata, tar, src, return_danger=True)[1])
+            danger = min(
+                danger,
+                balance_troops_between_two_strategics(gdata, tar, src, can_fort=self.can_fort, return_danger=True)[1]
+            )
 
         for node in path:
             node.restore_version()
@@ -81,7 +94,7 @@ class OneSurpriseAttack(Strategy):
 
     def get_trade_off_score(self, path: List[Node], attack_power: int):
         # it should be a little higher because trade off is a risky move
-        if attack_power < 2:  # TODO tune the safety threshold for attack power
+        if attack_power < 3:  # TODO tune the safety threshold for attack power
             return -np.Inf
         danger = self.get_scenario_danger(path, attack_power, strategic_src_matter=False)
         if danger > 0:
@@ -145,8 +158,10 @@ class OneSurpriseAttack(Strategy):
                 max_path = path
         return max_path, max_attack_power
 
-    def compute_plan(self, attempt=0):
+    def compute_plan(self, attempt=0, can_move=True, can_fort=True):
         gdata = self.game.game_data
+        self.can_move = can_move
+        self.can_fort = can_fort
         strategic_nodes = [node for node in gdata.nodes if node.owner != gdata.player_id and node.is_strategic]
         my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
