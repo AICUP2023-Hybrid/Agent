@@ -75,12 +75,12 @@ def get_expected_casualty():
     global expected_casualty
     if len(expected_casualty) == 0:
         expected_casualty = []
-        for d in range(20):
+        for d in range(40):
             expected_remain = 0
-            for pr, prob in get_chances(d + 5, d, 0):
+            for pr, prob in get_chances(d + 15, d, 0):
                 expected_remain += pr[0] * prob
-            expected_casualty.append(d + 5 - expected_remain)
-        for i in range(20, 400):
+            expected_casualty.append(d + 15 - expected_remain)
+        for i in range(40, 400):
             expected_casualty.append(0.688 * i)  # good approx
     return expected_casualty
 
