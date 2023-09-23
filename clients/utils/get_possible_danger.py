@@ -73,13 +73,13 @@ def get_targets_by_attacker(gdata: GameData, attacker_id):
     return sorted(res, key=lambda x: x[0], reverse=True)
 
 
-def get_node_danger(gdata: GameData, node: Node):
+def get_node_danger(gdata: GameData, node: Node, max_troops_to_expect=None):
     # return get_relative_strategic_node_danger(gdata, node.owner)[node]
     attack_power = -np.Inf
     for player in range(gdata.player_cnt):
         if player == node.owner:
             continue
-        attack_power = max(attack_power, get_surprise_danger(gdata, node, player))
+        attack_power = max(attack_power, get_surprise_danger(gdata, node, player, max_troops_to_put=max_troops_to_expect))
 
     return attack_power  # returns expected amount of troops left after being attacked
 
