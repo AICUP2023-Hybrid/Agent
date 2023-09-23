@@ -73,6 +73,8 @@ def initialize_turn(game: GameClient | online_src.game.Game):
         for node in nodes_sorted if node.owner == gdata.player_id and node.is_strategic
     ]
     my_nodes = sorted(my_nodes, key=lambda x: -x[1])
+    if my_nodes[-1][0].score_of_strategic == 1:
+        my_nodes.pop()
     for node, score, danger in my_nodes:
         if danger > 0:
             print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
