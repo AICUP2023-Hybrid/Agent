@@ -79,7 +79,10 @@ def get_node_danger(gdata: GameData, node: Node, max_troops_to_expect=None):
     for player in range(gdata.player_cnt):
         if player == node.owner:
             continue
-        attack_power = max(attack_power, get_surprise_danger(gdata, node, player, max_troops_to_put=max_troops_to_expect))
+        attack_power = max(
+            attack_power,
+            get_surprise_danger(gdata, node, player, include_src_troops=True, max_troops_to_put=max_troops_to_expect)
+        )
 
     return attack_power  # returns expected amount of troops left after being attacked
 
