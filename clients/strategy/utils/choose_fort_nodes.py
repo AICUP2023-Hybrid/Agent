@@ -26,7 +26,7 @@ def get_fort_from_nodes(gdata: GameData, nodes: List[Node]):
             delta = expected_causalty[target.number_of_troops + to_fortify] - expected_causalty[target.number_of_troops]
             if danger - delta <= 0:
                 fortify_count = to_fortify
-            if danger - delta <= -10:  # TODO tune this hyperparameter
+            if danger - delta <= -4:  # TODO tune this hyperparameter
                 break
         if fortify_count:
             possibilities.append(FortAction(node=target, count=fortify_count))

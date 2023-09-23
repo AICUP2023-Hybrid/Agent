@@ -44,7 +44,6 @@ for _ in range(1, 106):
 for ti, (turn, data) in enumerate(turns_data):
     owners = data['nodes_owner']
     troops = data['troop_count']
-    forts = data['fort']
     for _, player in game.players.items():
         player.nodes = []
     for node_id in range(len(owners)):
@@ -53,7 +52,6 @@ for ti, (turn, data) in enumerate(turns_data):
             node.owner = game.players[owners[node_id]]
             game.players[node.owner.id].nodes.append(node)
         node.number_of_troops = troops[node_id]
-        node.number_of_fort_troops = forts[node_id]
 
     player_id = game.start_turn()
     player = game.players[player_id]
@@ -68,6 +66,11 @@ for ti, (turn, data) in enumerate(turns_data):
     game.log_attack = data['attack']
     game.end_turn()
     game.visualize(ti == len(turns_data) - 1, winner, None)
+
+    forts = data['fort']
+    for node_id in range(len(owners)):
+        node = game.nodes[node_id]
+        node.number_of_fort_troops = forts[node_id]
 
     for item in data['attack']:
         target = item['target']
