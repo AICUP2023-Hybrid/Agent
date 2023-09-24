@@ -4,6 +4,7 @@ import numpy as np
 from clients.strategy.startegy import *
 from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.strategy.utils.choose_fort_nodes import get_fort_from_nodes
+from clients.utils.attack_chance import get_expected_casualty, get_win_rate
 
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger
 
@@ -133,6 +134,10 @@ class OneSurpriseAttack(Strategy):
     def get_trade_off_score(self, path: List[Node], attack_power: int):
         # it should be a little higher because trade off is a risky move
         if attack_power < 3:  # TODO tune the safety threshold for attack power
+            return -np.Inf
+        exp = get_expected_casualty()
+        before_last_attack = round(attack_power + exp[path[-1].number_of_troops + path[-1].number_of_fort_troops])
+        if get_win_rate(before_last_attack, path[-1].number_of_troops + path[-1].number_of_fort_troops) < 0.75:
             return -np.Inf
         danger = self.get_scenario_danger(
             path,
