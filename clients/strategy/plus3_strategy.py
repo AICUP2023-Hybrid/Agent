@@ -17,7 +17,7 @@ class Plus3Strategy(Strategy):
 
     def attacks(self) -> List[AttackAction]:
         attack = AttackAction(src=self.src, dest=self.tar, fraction=0,
-                              move_fraction=0 if self.src.is_strategic else 1)
+                              move_fraction=0.001 if self.src.is_strategic else 0.999)
         return [attack]
 
     def move_troop(self) -> Optional[MoveTroopAction]:

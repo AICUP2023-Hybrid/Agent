@@ -13,6 +13,7 @@ class ClientAi:
         self.flag = False
         self.kernel = kernel
         self.game = self.join_kernel()
+        self.game.ai_client = self
         self.name_id = name_id
         print(self.kernel.ready(self.game.get_player_id()))
 
