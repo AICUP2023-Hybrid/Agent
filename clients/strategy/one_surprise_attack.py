@@ -147,10 +147,11 @@ class OneSurpriseAttack(Strategy):
             target.number_of_troops = round(attack_power if gdata.players_done_fort[player] else 2 * attack_power - 1)
             if get_node_danger(gdata, target) <= 0:
                 score = win_prob * target.score_of_strategic
+        gain = self.calculate_gain(player)
         for node in max_path:
             node.restore_version()
         gdata.remaining_init[gdata.player_id] = original_init
-        return max(score, 0) * self.calculate_gain(player)
+        return max(score, 0) * gain
 
     def get_max_loss_node(self, node: Node):
         gdata = self.game.game_data
