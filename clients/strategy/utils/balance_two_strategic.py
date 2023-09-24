@@ -20,11 +20,12 @@ def get_node_attack_advantage(gdata: GameData, node: Node):
 
 def balance_troops_between_two_strategics(gdata: GameData, src: Node, dst: Node, can_fort=True, return_danger=False):
     troop_cnt = src.number_of_troops
+    player = src.owner
 
     src.save_version()
     dst.save_version()
     min_danger, move_troops = np.Inf, 0
-    for fort_node in ([src, dst] if not gdata.done_fort and can_fort else [None]):
+    for fort_node in ([src, dst] if not gdata.players_done_fort[player] and can_fort else [None]):
         for i in range(0, troop_cnt):
             src.number_of_troops = troop_cnt - i
             dst.number_of_troops = i + 1

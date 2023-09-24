@@ -76,7 +76,7 @@ def initialize_turn(game: GameClient | online_src.game.Game):
         )
         for node in nodes_sorted if node.owner == gdata.player_id and node.is_strategic
     ]
-    if gdata.remaining_init[gdata.player_id] < 10:
+    if gdata.remaining_init[gdata.player_id] < 15:
         return
     my_nodes = sorted(my_nodes, key=lambda x: -x[1])
     if my_nodes[-1][0].score_of_strategic == 1:

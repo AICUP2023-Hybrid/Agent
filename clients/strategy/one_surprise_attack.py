@@ -57,6 +57,8 @@ class OneSurpriseAttack(Strategy):
             node.save_version()
             node.owner = gdata.player_id
             node.number_of_troops = 1
+            if node.id != path[0].id:
+                node.number_of_fort_troops = 0
         tar.number_of_troops = int(attack_power)
         danger = np.Inf
         if src_matter and dst_matter:
@@ -92,18 +94,13 @@ class OneSurpriseAttack(Strategy):
         gdata = self.game.game_data
         if opposition == gdata.player_id:
             return 0
+        p_gains = gdata.get_players_troop_gain()
         other_opposition = [i for i in range(3) if i != opposition and i != gdata.player_id][0]
-        player_troop_gains = [0, 0, 0]
-        for node in gdata.nodes:
-            if node.owner is None:
-                continue
-            player_troop_gains[node.owner] += node.score_of_strategic + 0.25
-        for i in range(3):
-            player_troop_gains[i] = int(player_troop_gains[i])
-        my_gain = player_troop_gains[gdata.player_id]
-        op_gain = player_troop_gains[opposition]
-        oop_gain = player_troop_gains[other_opposition]
-        if min(my_gain * 1.5, 10) < op_gain:
+
+        my_gain, op_gain, oop_gain = [
+            p_gains[x] for x in [gdata.player_id, opposition, other_opposition]
+        ]
+        if min(my_gain * 1.5, 10) < op_gain and gdata.phase_2_turns > 1:
             if oop_gain - my_gain > 3:
                 return 0
             elif my_gain - op_gain > 4:
@@ -118,6 +115,49 @@ class OneSurpriseAttack(Strategy):
         before_last_attack = round(attack_power + exp[path[-1].number_of_troops + path[-1].number_of_fort_troops])
         return get_win_rate(before_last_attack, path[-1].number_of_troops + path[-1].number_of_fort_troops)
 
+    def get_loss_node_gain_by_player(self, target: Node, player):
+        gdata = self.game.game_data
+        attack_power, max_path = get_surprise_danger(
+            gdata, target, player, include_src_troops=True, return_max_path=True
+        )
+        if attack_power <= 0:
+            return 0
+        for node in max_path:
+            node.save_version()
+            node.owner = player
+            node.number_of_troops = 1
+            if node.id != max_path[0].id:
+                node.number_of_fort_troops = 0
+        win_prob = self.get_win_prob(max_path, attack_power)
+        score = 0
+        # revert this at the end!
+        original_init = gdata.remaining_init[gdata.player_id]
+        gdata.remaining_init[gdata.player_id] = gdata.get_players_troop_gain()[gdata.player_id]
+        if max_path[0].is_strategic:
+            danger = balance_troops_between_two_strategics(gdata, max_path[0], max_path[-1], return_danger=True)[1]
+            if danger <= 0:
+                score = win_prob * target.score_of_strategic
+            else:
+                target.number_of_troops = round(
+                    attack_power if gdata.players_done_fort[player] else 2 * attack_power - 1
+                )
+                if get_node_danger(gdata, target) <= 0:
+                    score = win_prob * (target.score_of_strategic - max_path[0].score_of_strategic)
+        if not max_path[0].is_strategic:
+            target.number_of_troops = round(attack_power if gdata.players_done_fort[player] else 2 * attack_power - 1)
+            if get_node_danger(gdata, target) <= 0:
+                score = win_prob * target.score_of_strategic
+        for node in max_path:
+            node.restore_version()
+        gdata.remaining_init[gdata.player_id] = original_init
+        return max(score, 0) * self.calculate_gain(player)
+
+    def get_max_loss_node(self, node: Node):
+        gdata = self.game.game_data
+        return max(
+            self.get_loss_node_gain_by_player(node, i) for i in range(3) if i != gdata.player_id
+        )
+
     def get_defensive_attack_score(self, path: List[Node], attack_power: float):
         gdata = self.game.game_data
         d = get_node_danger(gdata, path[0])
@@ -130,11 +170,14 @@ class OneSurpriseAttack(Strategy):
         )
         if danger > -2:  # making sure it's safe
             return -np.Inf
+
         src, tar = path[0], path[-1]
-        win_prob = self.get_win_prob(path, attack_power)
-        score = win_prob * tar.score_of_strategic * self.calculate_gain(tar.owner) + 1.5 * src.score_of_strategic
+        src_score = src.score_of_strategic + self.get_max_loss_node(src)
         if len(path) == 1:
-            score = 1.5 * src.score_of_strategic - 3  # because of loosing attack points
+            return src_score - 1.5  # because of loosing attack points
+
+        win_prob = self.get_win_prob(path, attack_power)
+        score = win_prob * (tar.score_of_strategic * self.calculate_gain(tar.owner) + src_score)
         # print(f'get {tar.score_of_strategic} by defensive score: {score}')
         return score
 
@@ -151,7 +194,9 @@ class OneSurpriseAttack(Strategy):
             return -np.Inf
         src, tar = path[0], path[-1]
         win_prob = self.get_win_prob(path, attack_power)
-        score = win_prob * tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)) - src.score_of_strategic
+        score = win_prob * (tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)))
+        if src.is_strategic and get_node_danger(self.game.game_data, src) <= 0:
+            score -= src.score_of_strategic + self.get_max_loss_node(src)
         # print(f'get {tar.score_of_strategic} by tradeoff score: {score}')
         return score
 
@@ -160,7 +205,6 @@ class OneSurpriseAttack(Strategy):
         if attack_power < 2:  # TODO tune the safety threshold for attack power
             return -np.Inf
         src = path[0]
-        src_danger = get_node_danger(gdata, src)
         danger = self.get_scenario_danger(
             path,
             attack_power,
@@ -170,9 +214,12 @@ class OneSurpriseAttack(Strategy):
             return -np.Inf
         tar = path[-1]
         win_prob = self.get_win_prob(path, attack_power)
-        score = win_prob * tar.score_of_strategic * (1 + self.calculate_gain(tar.owner))
+        src_danger = get_node_danger(gdata, src)
+        score = win_prob * (tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)))
         if src.is_strategic and src_danger > 0:
-            score += 1.5 * src.score_of_strategic
+            score += win_prob * (src.score_of_strategic + self.get_max_loss_node(src))
+        if src.is_strategic and src_danger <= 0:
+            score -= (1 - win_prob) * (src.score_of_strategic + self.get_max_loss_node(src))
         # print(f'get {tar.score_of_strategic} by hold score: {score}')
         return score
 

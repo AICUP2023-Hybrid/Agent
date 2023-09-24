@@ -25,6 +25,7 @@ class GameData:
         self.phase_2_turns = 1
         self.turn_number = None
         self.done_fort = False
+        self.players_done_fort = [False, False, False]
 
     def update_game_state(self):
         if len(self.nodes) == 0:
@@ -54,7 +55,10 @@ class GameData:
             self.nodes[int(node_idx_str)].number_of_troops = troops_cnt
 
         for node_idx_str, troops_cnt in self.game.get_number_of_fort_troops().items():
-            self.nodes[int(node_idx_str)].number_of_fort_troops = troops_cnt
+            node = self.nodes[int(node_idx_str)]
+            if troops_cnt > 0:
+                self.players_done_fort[node.owner] = True
+            node.number_of_fort_troops = troops_cnt
 
         if self.stage == 0:
             self.remaining_init = [35, 35, 35]
@@ -111,3 +115,13 @@ class GameData:
                     continue
                 graph.add_edge(node.id, nei.id, weight=weight)
         return graph
+
+    def get_players_troop_gain(self) -> List[int]:
+        player_troop_gains = [0, 0, 0]
+        for node in self.nodes:
+            if node.owner is None:
+                continue
+            player_troop_gains[node.owner] += node.score_of_strategic + 0.25
+        for i in range(3):
+            player_troop_gains[i] = int(player_troop_gains[i])
+        return player_troop_gains
