@@ -2,6 +2,7 @@ import dataclasses
 from abc import abstractmethod
 from typing import List, Optional
 
+from clients.utils.maximize_score import maximize_score
 from components.node import Node
 
 from clients.game_client import GameClient
@@ -82,6 +83,11 @@ class Strategy:
                 continue
             self.game.attack(attack.src.id, attack.dest.id, attack.fraction, attack.move_fraction)
             gdata.update_game_state()
+
+            my_strategics = [node for node in gdata.nodes if node.is_strategic and node.owner == gdata.player_id]
+            if len(my_strategics) >= 4 and gdata.turn_number >= 126:
+                maximize_score(self.game, can_put_troops=False)
+                break
 
         if go_next_state:
             self.game.next_state()

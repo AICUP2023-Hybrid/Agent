@@ -25,8 +25,12 @@ def plan_attack(game: GameClient | online_src.game.Game):
 
     # "get much as territory when last player in last round" strategy
     is_last_turn = (game_config['number_of_turns'] - game.get_turn_number()['turn_number'] < 3)
-    if (is_last_turn and gdata.player_id == 0) or (gdata.turn_number == 126 and len(my_strategic) >= 4):  # and gdata.player_id == 0:
+    if (is_last_turn and gdata.player_id == 0) or (gdata.turn_number == 126 and len(my_strategic) >= 4):
         maximize_score(game)
+        game.next_state()
+        # no move troops
+        game.next_state()
+        # no fort
         return
 
     # surprise one strategic attack

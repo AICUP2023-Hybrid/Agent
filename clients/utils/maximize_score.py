@@ -6,9 +6,11 @@ from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
 
 
-def maximize_score(game: GameClient):
+def maximize_score(game: GameClient, can_put_troops=True):
     gdata = game.game_data
     remaining_troops = gdata.remaining_init[gdata.player_id]
+    if not can_put_troops:
+        remaining_troops = 0
     puts = defaultdict(lambda: 0)
 
     for node in gdata.nodes:
@@ -71,10 +73,11 @@ def maximize_score(game: GameClient):
         for nei in attack_graph.neighbors(node):
             exp_cas[node] += expected_casualty[nei]
 
-    for node_id, put_troops in puts.items():
-        game.put_troop(node_id, put_troops)
-    gdata.update_game_state()
-    game.next_state()
+    if can_put_troops:
+        for node_id, put_troops in puts.items():
+            game.put_troop(node_id, put_troops)
+        gdata.update_game_state()
+        game.next_state()
 
     for node_id in nx.topological_sort(attack_graph):
         node = gdata.nodes[node_id]
@@ -90,10 +93,3 @@ def maximize_score(game: GameClient):
             has_attack = True
         if has_attack:
             gdata.update_game_state()
-    game.next_state()
-    # no move troops
-    game.next_state()
-    # no fort
-
-
-
