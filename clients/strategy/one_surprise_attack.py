@@ -191,6 +191,16 @@ class OneSurpriseAttack(Strategy):
                     score = (plan_score, -paths_length[src.id], attack_power)
                     if plan[1] < score:
                         plans[ind] = (path, score)
+        for src in [n for n in gdata.nodes if n.owner in [gdata.player_id, None]]:
+            paths = nx.shortest_path(graph, source=src.id, weight='weight')
+            paths_length = nx.shortest_path_length(graph, source=src.id, weight='weight')
+            for target in [n for n in gdata.nodes if n.owner not in [gdata.player_id, None] and n.id in paths]:
+                attack_power = src.number_of_troops + troops_to_put - paths_length[target.id]
+                path = [gdata.nodes[x] for x in paths[target.id]]
+                defensive_attack_score = self.get_defensive_attack_score(path, attack_power)
+                score = (defensive_attack_score, -paths_length[src.id], attack_power)
+                if defensive_attack_plan[1] < score:
+                    defensive_attack_plan = (path, score)
         return plans
 
     def check_only_capture_attack(self, bypass_by_owner=None):
