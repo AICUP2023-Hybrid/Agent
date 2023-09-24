@@ -360,7 +360,7 @@ class Game:
     def save_gif(self, file_name):
         if not os.path.exists(self.config["visualization_folder"]):
             os.mkdir(self.config["visualization_folder"])
-        self.frames[-1].save(f'{self.config["visualization_folder"]}/{file_name}-ending.png')
+        # self.frames[-1].save(f'{self.config["visualization_folder"]}/{file_name}-ending.png')
         self.frames[0].save(
             f'{self.config["visualization_folder"]}/{file_name}.gif',
             save_all=True,
