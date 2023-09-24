@@ -34,7 +34,7 @@ class OneSurpriseAttack(Strategy):
             return None
         gdata = self.game.game_data
         max_path = self.attack_path
-        if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id:
+        if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id and len(max_path) > 1:
             return balance_troops_between_two_strategics(gdata, max_path[-1], max_path[0])
 
     def fortify(self) -> Optional[FortAction]:
@@ -42,6 +42,8 @@ class OneSurpriseAttack(Strategy):
             return None
         gdata = self.game.game_data
         max_path = self.attack_path
+        if len(max_path) == 1:
+            return get_fort_from_nodes(gdata, [max_path[0]])
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
     def get_scenario_danger(self, path: List[Node], attack_power: int,
@@ -87,6 +89,8 @@ class OneSurpriseAttack(Strategy):
     # TODO define some theoretical basis for this
     def calculate_gain(self, opposition):
         gdata = self.game.game_data
+        if opposition == gdata.player_id:
+            return 0
         other_opposition = [i for i in range(3) if i != opposition and i != gdata.player_id][0]
         player_troop_gains = [0, 0, 0]
         for node in gdata.nodes:
@@ -121,6 +125,8 @@ class OneSurpriseAttack(Strategy):
             return -np.Inf
         src, tar = path[0], path[-1]
         score = tar.score_of_strategic * self.calculate_gain(tar.owner) + 1.5 * src.score_of_strategic
+        if len(path) == 1:
+            score = 1.5 * src.score_of_strategic - 3  # because of loosing attack points
         # print(f'get {tar.score_of_strategic} by defensive score: {score}')
         return score
 
@@ -198,9 +204,15 @@ class OneSurpriseAttack(Strategy):
                 attack_power = src.number_of_troops + troops_to_put - paths_length[target.id]
                 path = [gdata.nodes[x] for x in paths[target.id]]
                 defensive_attack_score = self.get_defensive_attack_score(path, attack_power)
-                score = (defensive_attack_score, -paths_length[src.id], attack_power)
+                score = (defensive_attack_score, -paths_length[target.id], attack_power)
                 if defensive_attack_plan[1] < score:
                     defensive_attack_plan = (path, score)
+
+            attack_power = src.number_of_troops + troops_to_put
+            defensive_attack_score = self.get_defensive_attack_score([src], attack_power)
+            score = (defensive_attack_score, 0, attack_power)
+            if defensive_attack_plan[1] < score:
+                defensive_attack_plan = ([src], score)
         return plans
 
     def check_only_capture_attack(self, bypass_by_owner=None):
