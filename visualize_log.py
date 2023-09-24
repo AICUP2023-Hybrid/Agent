@@ -9,7 +9,7 @@ from offline_main import read_config
 
 responses = []
 if sys.argv[1] == '-f':
-    response = [('local', 'map4.json', json.load(open(sys.argv[2])))]
+    responses = [('local', 'map4.json', json.load(open(sys.argv[2])))]
 elif sys.argv[1] == '-g':
     game_id = int(sys.argv[2])
     api_url = 'https://api.aicup2023.ir/api/match/'
