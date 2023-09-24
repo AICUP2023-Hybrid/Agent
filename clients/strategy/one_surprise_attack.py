@@ -47,7 +47,7 @@ class OneSurpriseAttack(Strategy):
             return get_fort_from_nodes(gdata, [max_path[0]])
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
-    def get_scenario_danger(self, path: List[Node], attack_power: int,
+    def get_scenario_danger(self, path: List[Node], attack_power: float,
                             src_matter=True, dst_matter=True):
         if not src_matter and not dst_matter:
             raise NotImplementedError
@@ -112,7 +112,13 @@ class OneSurpriseAttack(Strategy):
                 return 0.5
         return 0.5
 
-    def get_defensive_attack_score(self, path: List[Node], attack_power: int):
+    @staticmethod
+    def get_win_prob(path: List[Node], attack_power: float):
+        exp = get_expected_casualty()
+        before_last_attack = round(attack_power + exp[path[-1].number_of_troops + path[-1].number_of_fort_troops])
+        return get_win_rate(before_last_attack, path[-1].number_of_troops + path[-1].number_of_fort_troops)
+
+    def get_defensive_attack_score(self, path: List[Node], attack_power: float):
         gdata = self.game.game_data
         d = get_node_danger(gdata, path[0])
         if not path[0].is_strategic or attack_power < 3 or d <= 0:
@@ -125,7 +131,8 @@ class OneSurpriseAttack(Strategy):
         if danger > -2:  # making sure it's safe
             return -np.Inf
         src, tar = path[0], path[-1]
-        score = tar.score_of_strategic * self.calculate_gain(tar.owner) + 1.5 * src.score_of_strategic
+        win_prob = self.get_win_prob(path, attack_power)
+        score = win_prob * tar.score_of_strategic * self.calculate_gain(tar.owner) + 1.5 * src.score_of_strategic
         if len(path) == 1:
             score = 1.5 * src.score_of_strategic - 3  # because of loosing attack points
         # print(f'get {tar.score_of_strategic} by defensive score: {score}')
@@ -135,10 +142,6 @@ class OneSurpriseAttack(Strategy):
         # it should be a little higher because trade off is a risky move
         if attack_power < 3:  # TODO tune the safety threshold for attack power
             return -np.Inf
-        exp = get_expected_casualty()
-        before_last_attack = round(attack_power + exp[path[-1].number_of_troops + path[-1].number_of_fort_troops])
-        if get_win_rate(before_last_attack, path[-1].number_of_troops + path[-1].number_of_fort_troops) < 0.75:
-            return -np.Inf
         danger = self.get_scenario_danger(
             path,
             attack_power,
@@ -147,11 +150,12 @@ class OneSurpriseAttack(Strategy):
         if danger > 0:
             return -np.Inf
         src, tar = path[0], path[-1]
-        score = tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)) - src.score_of_strategic
+        win_prob = self.get_win_prob(path, attack_power)
+        score = win_prob * tar.score_of_strategic * (1 + self.calculate_gain(tar.owner)) - src.score_of_strategic
         # print(f'get {tar.score_of_strategic} by tradeoff score: {score}')
         return score
 
-    def get_hold_score(self, path: List[Node], attack_power: int):
+    def get_hold_score(self, path: List[Node], attack_power: float):
         gdata = self.game.game_data
         if attack_power < 2:  # TODO tune the safety threshold for attack power
             return -np.Inf
@@ -165,7 +169,8 @@ class OneSurpriseAttack(Strategy):
         if danger > 0:
             return -np.Inf
         tar = path[-1]
-        score = tar.score_of_strategic * (1 + self.calculate_gain(tar.owner))
+        win_prob = self.get_win_prob(path, attack_power)
+        score = win_prob * tar.score_of_strategic * (1 + self.calculate_gain(tar.owner))
         if src.is_strategic and src_danger > 0:
             score += 1.5 * src.score_of_strategic
         # print(f'get {tar.score_of_strategic} by hold score: {score}')
