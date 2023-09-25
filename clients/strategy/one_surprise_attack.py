@@ -137,7 +137,7 @@ class OneSurpriseAttack(Strategy):
         src.number_of_troops += troops_to_put
         outcomes = get_attack_outcomes(path)
         first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
-        score -= 1. * (1 - first_win_prob)  # no +3 strategic
+        score += 1. * first_win_prob  # no +3 strategic
         src.number_of_troops -= troops_to_put
         if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
             score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
@@ -155,7 +155,7 @@ class OneSurpriseAttack(Strategy):
                     score += 1. * (src.score_of_strategic + loss_gain_src)
             for node in path:
                 node.restore_version()
-            print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score}')
+            # print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score}')
             return score
 
         # TODO can move and can fort should be accounted for here
@@ -233,8 +233,8 @@ class OneSurpriseAttack(Strategy):
         for node in path:
             node.restore_version()
 
-        print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score} /'
-              f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
+        # print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score} /'
+        #       f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
         return score
 
     def check_attack_pairs(self, max_troops_to_put=None):
