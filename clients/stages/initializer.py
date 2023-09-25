@@ -71,12 +71,12 @@ def initialize_turn(game: GameClient | online_src.game.Game):
             get_node_danger(
                 game.game_data,
                 node,
-                max_troops_to_expect=6
+                max_troops_to_expect=15
             )
         )
         for node in nodes_sorted if node.owner == gdata.player_id and node.is_strategic
     ]
-    if gdata.remaining_init[gdata.player_id] < 15:
+    if gdata.remaining_init[gdata.player_id] < 12:
         return
     my_nodes = sorted(my_nodes, key=lambda x: -x[1])
     if my_nodes[-1][0].score_of_strategic == 1:
