@@ -127,6 +127,9 @@ def get_attack_outcomes(path: List[Node]):
     for node in path[1:]:
         defenders = min(MAX_TROOP_CALC - 1, node.number_of_troops + node.number_of_fort_troops)
         cur_outcome = np.matmul(cur_outcome, attack_outcomes[defenders])
+        cur_outcome = np.roll(cur_outcome, -1)
+        cur_outcome[0] += cur_outcome[-1]
+        cur_outcome[-1] = 0
     return cur_outcome
 
 

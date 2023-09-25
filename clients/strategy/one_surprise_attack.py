@@ -4,7 +4,7 @@ import numpy as np
 from clients.strategy.startegy import *
 from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
 from clients.strategy.utils.choose_fort_nodes import get_fort_from_nodes
-from clients.utils.algorithms import binary_search
+from clients.utils.algorithms import binary_search, balance_two_nodes_binary_search
 from clients.utils.attack_chance import get_expected_casualty, get_win_rate, get_attack_outcomes, MAX_TROOP_CALC
 
 from clients.utils.get_possible_danger import get_surprise_danger, get_node_danger
@@ -154,7 +154,7 @@ class OneSurpriseAttack(Strategy):
             self.get_loss_node_gain_by_player(node, i) for i in range(3) if i != gdata.player_id
         )
 
-    def get_general_attack_score(self, path: List[Node]):
+    def get_general_attack_score(self, path: List[Node], troops_to_put):
         gdata = self.game.game_data
         score = 0
         src, tar = path[0], path[-1]
@@ -167,7 +167,6 @@ class OneSurpriseAttack(Strategy):
         tar_gain = tar.score_of_strategic * self.calculate_gain(tar.owner)
         if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
             score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
-
         for node in path:
             node.save_version()
             node.owner = gdata.player_id
@@ -176,20 +175,22 @@ class OneSurpriseAttack(Strategy):
                 node.number_of_fort_troops = 0
 
         # TODO can move and can fort should be accounted for here
-        MAX_NUM = MAX_TROOP_CALC
+        MAX_NUM = min(MAX_TROOP_CALC, path[0].number_of_troops + troops_to_put + 1)
         max_check = MAX_NUM
 
-        def can_save_two_nodes(remaining_troops: int):
+        def two_nodes_danger_func(remaining_troops: int):
             if remaining_troops == 0:
                 return False
             tar.number_of_troops = remaining_troops
             danger = balance_troops_between_two_strategics(
                 gdata, tar, src, can_fort=self.can_fort, return_danger=True
             )[1]
-            return danger <= 0
+            return danger
 
         if src.is_strategic and tar.is_strategic:  # holding both
-            max_check = binary_search(0, MAX_NUM, can_save_two_nodes, False)
+            max_check = balance_two_nodes_binary_search(
+                0, MAX_NUM, two_nodes_danger_func
+            )
             for i in range(max_check, MAX_NUM):
                 prob = outcomes[i]
                 score += prob * (tar.score_of_strategic + tar_gain)  # holding new strategic
@@ -247,6 +248,9 @@ class OneSurpriseAttack(Strategy):
 
         for node in path:
             node.restore_version()
+
+        # print(outcomes)
+        # print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score}')
         return score
 
     def check_attack_pairs(self, max_troops_to_put=None):
@@ -264,7 +268,7 @@ class OneSurpriseAttack(Strategy):
             for src in [n for n in gdata.nodes if n.owner in [gdata.player_id, None] and n.id in paths]:
                 attack_power = src.number_of_troops + troops_to_put - paths_length[src.id]
                 path = [gdata.nodes[x] for x in paths[src.id]]
-                score = self.get_general_attack_score(path)
+                score = self.get_general_attack_score(path, troops_to_put)
                 score = (score, -paths_length[src.id], attack_power)
                 if plan[1] < score:
                     plan = (path, score)
