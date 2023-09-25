@@ -326,7 +326,7 @@ class OneSurpriseAttack(Strategy):
             )
         else:
             chosen_plan = self.check_attack_pairs(gdata.remaining_init[gdata.player_id])
-            if chosen_plan[1][0] < 0:
+            if chosen_plan[1][0] < 0.1:
                 chosen_plan = (None, (0, -np.Inf, -np.Inf))
         self.troops_to_put = gdata.remaining_init[gdata.player_id]
         self.attack_path = chosen_plan[0]
