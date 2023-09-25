@@ -140,21 +140,6 @@ class OneSurpriseAttack(Strategy):
             if node.id != path[0].id:
                 node.number_of_fort_troops = 0
 
-        if len(path) == 1:
-            if not src.is_strategic or src_danger <= 0:
-                score += 0
-            else:
-                src.number_of_troops += troops_to_put
-                if self.can_fort and not gdata.done_fort:
-                    src.number_of_troops *= 2
-                    src.number_of_troops -= 1
-                danger = get_node_danger(gdata, src)
-                if danger <= 0:
-                    score += 1. * (src.score_of_strategic + loss_gain_src)
-            for node in path:
-                node.restore_version()
-            return score
-
         # TODO can move and can fort should be accounted for here
         MAX_NUM = min(MAX_TROOP_CALC, path[0].number_of_troops + troops_to_put + 1)
         max_check = MAX_NUM
@@ -254,29 +239,23 @@ class OneSurpriseAttack(Strategy):
                 score = (score, -paths_length[src.id], attack_power)
                 if plan[1] < score:
                     plan = (path, score)
-
-        for src in [n for n in gdata.nodes if n.owner == gdata.player_id and n.is_strategic]:
-            paths = nx.shortest_path(graph, source=src.id, weight='weight')
-            paths_length = nx.shortest_path_length(graph, source=src.id, weight='weight')
-            for target in [
-                n for n in gdata.nodes
-                # already check other strategics
-                if n.owner not in [gdata.player_id, None] and n.id in paths and not n.is_strategic
-            ]:
-                if paths_length[target.id] > 3:
-                    continue
-                attack_power = src.number_of_troops + troops_to_put - paths_length[target.id]
-                path = [gdata.nodes[x] for x in paths[target.id]]
-                score = self.get_general_attack_score(path, troops_to_put)
-                score = (score, -paths_length[target.id], attack_power)
-                if plan[1] < score:
-                    plan = (path, score)
-
-            attack_power = src.number_of_troops + troops_to_put
-            score = self.get_general_attack_score([src], troops_to_put)
-            score = (score, 0, attack_power)
-            if plan[1] < score:
-                plan = ([src], score)
+        if plan[1][0] < 0.1:
+            for src in [n for n in gdata.nodes if n.owner == gdata.player_id and n.is_strategic]:
+                paths = nx.shortest_path(graph, source=src.id, weight='weight')
+                paths_length = nx.shortest_path_length(graph, source=src.id, weight='weight')
+                for target in [
+                    n for n in gdata.nodes
+                    # already check other strategics
+                    if n.owner not in [gdata.player_id, None] and n.id in paths and not n.is_strategic
+                ]:
+                    if paths_length[target.id] > 3:
+                        continue
+                    attack_power = src.number_of_troops + troops_to_put - paths_length[target.id]
+                    path = [gdata.nodes[x] for x in paths[target.id]]
+                    score = self.get_general_attack_score(path, troops_to_put)
+                    score = (score, -paths_length[target.id], attack_power)
+                    if plan[1] < score:
+                        plan = (path, score)
 
         return plan
 
