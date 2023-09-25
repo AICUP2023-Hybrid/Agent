@@ -1,3 +1,5 @@
+from math import ceil
+
 import networkx as nx
 import numpy as np
 
@@ -21,10 +23,14 @@ def get_init_score(gdata: GameData, nodes):
             if node.id in lengths and lengths[node.id] <= 3:
                 point = [0, 0, 1, 0.25]
                 strategics[i][1] += point[lengths[node.id]]
+    dist = 0
+    for a in nodes:
+        for b in nodes:
+            dist += nx.shortest_path_length(graph, source=a.id, target=b.id)
     score = 0
     for node, cnt in strategics:
         score += max(cnt, 1)
-    return score
+    return score + 0.01 * dist
 
 
 def initialize_turn(game: GameClient | online_src.game.Game):
@@ -70,18 +76,19 @@ def initialize_turn(game: GameClient | online_src.game.Game):
             node.score_of_strategic,
             get_node_danger(
                 game.game_data,
-                node,
-                max_troops_to_expect=15
+                node
             )
         )
         for node in nodes_sorted if node.owner == gdata.player_id and node.is_strategic
     ]
-    if gdata.remaining_init[gdata.player_id] < 12:
+    dont_put = 20
+    if gdata.remaining_init[gdata.player_id] < dont_put:
         return
-    my_nodes = sorted(my_nodes, key=lambda x: -x[1])
-    if my_nodes[-1][0].score_of_strategic == 1:
-        my_nodes.pop()
-    for node, score, danger in my_nodes:
-        if danger > 0:
-            print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
-            return
+    if ceil((125 - gdata.turn_number + 1) / 3) <= 35 - dont_put:
+        my_nodes = sorted(my_nodes, key=lambda x: -x[1])
+        if my_nodes[-1][0].score_of_strategic == 1:
+            my_nodes.pop()
+        for node, score, danger in my_nodes:
+            if danger > 0:
+                print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
+                return

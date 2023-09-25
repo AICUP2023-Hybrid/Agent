@@ -15,8 +15,17 @@ def plan_attack(game: GameClient | online_src.game.Game):
     gdata.update_game_state()
     my_strategic = [node for node in gdata.nodes if node.owner == gdata.player_id and node.is_strategic]
 
+    max_strategics = -1
+    for pi in range(gdata.player_cnt):
+        if pi == gdata.player_id:
+            continue
+        num_stra = len([n for n in gdata.nodes if n.owner == pi])
+        if max_strategics < num_stra:
+            max_strategics = num_stra
     # surprise two strategic attack
-    condition = (gdata.turn_number >= 126 and len(my_strategic) >= 2)
+    condition = (
+            gdata.turn_number >= 126 and len(my_strategic) >= 2
+    ) or (gdata.turn_number == 125 and max_strategics >= 5)
     two_surprise_attack_strategy = TwoSurpriseAttack(game, condition)
     shall_pass = two_surprise_attack_strategy.compute_plan()
     if shall_pass:

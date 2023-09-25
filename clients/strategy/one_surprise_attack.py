@@ -78,7 +78,7 @@ class OneSurpriseAttack(Strategy):
             if self.can_fort:
                 src.number_of_troops *= 2
                 src.number_of_troops -= 1
-            src.number_of_troops = int(src.number_of_troops)
+            src.number_of_troops = round(src.number_of_troops)
             danger = get_node_danger(gdata, src)
         elif dst_matter:
             if self.can_fort:
@@ -169,7 +169,7 @@ class OneSurpriseAttack(Strategy):
             attack_power,
             src_matter=True, dst_matter=False
         )
-        if danger > -2:  # making sure it's safe
+        if danger > 0:  # making sure it's safe
             return -np.Inf
 
         src, tar = path[0], path[-1]
