@@ -40,8 +40,6 @@ class Plus3Strategy(Strategy):
         for node in gdata.nodes:
             if node.owner not in [gdata.player_id, None]:
                 continue
-            if node.is_strategic:
-                continue  # don't ruin the available paths
             for troops_to_put in range(max_range):
                 for nei in node.adj_main_map:
                     if nei.owner not in [None, gdata.player_id]:
