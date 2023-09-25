@@ -51,3 +51,46 @@ def balance_troops_between_two_strategics(gdata: GameData, src: Node, dst: Node,
     if return_danger:
         return move, min_danger
     return move
+
+
+def check_balance_two_strategic_possible(gdata: GameData, src: Node, dst: Node, can_fort=True):
+    troop_cnt = src.number_of_troops
+    player = src.owner
+
+    fort_possible = can_fort and not gdata.players_done_fort[player]
+    src.number_of_troops = troop_cnt * 2 - 1 if fort_possible else troop_cnt
+    dst.number_of_troops = 1
+    danger_src = get_node_danger(gdata, src)
+    if danger_src > 0:
+        return False
+    start_at = int(-danger_src / (0.7 * 2 if fort_possible else 0.7))
+
+    src.save_version()
+    dst.save_version()
+    for fort_node in ([src, dst] if not gdata.players_done_fort[player] and can_fort else [None]):
+        prev_src_danger, prev_dst_danger = None, None
+        for i in range(start_at, troop_cnt):
+            src.number_of_troops = troop_cnt - i
+            dst.number_of_troops = i + 1
+            if fort_node:
+                fort_node.number_of_troops *= 2
+                fort_node.number_of_troops -= 1
+
+            src_strategic_danger = get_node_danger(gdata, src)
+            dst_strategic_danger = get_node_danger(gdata, dst)
+            danger = max(src_strategic_danger, dst_strategic_danger)
+
+            if danger <= 0:
+                src.restore_version()
+                dst.restore_version()
+                return True
+
+            if prev_src_danger is not None:
+                if src_strategic_danger > prev_src_danger:
+                    break
+
+            prev_src_danger, prev_dst_danger = src_strategic_danger, dst_strategic_danger
+    src.restore_version()
+    dst.restore_version()
+
+    return False

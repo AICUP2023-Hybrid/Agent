@@ -88,7 +88,7 @@ def get_score_by_client(score: dict):
 
 def do(i):
     visualize = False
-    block_print()
+    # block_print()
     # Creating and running game
     kernel = get_kernel()
     clients = get_clients_random(kernel)

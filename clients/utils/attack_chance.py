@@ -1,6 +1,10 @@
+import os.path
+from typing import List
+
 import numpy as np
 from collections import Counter
 
+from components.node import Node
 
 attacker_dice_probs = dict()
 for attacker_dice in range(4):
@@ -93,10 +97,45 @@ def get_expected_casualty_by_troops(attack_troops, defend_troops):
     return exp
 
 
+attack_outcome_table = None
+MAX_TROOP_CALC = 100
+
+
+# table is indexed like this [defender_troops, attack_troops, attack_remaining] = prob of attack remaining outcome
+def get_attacker_outcome_table():
+    global attack_outcome_table
+    if attack_outcome_table is not None:
+        return attack_outcome_table
+    path = './clients/utils/attack_outcomes.npy'
+    if os.path.exists(path):
+        attack_outcome_table = np.load(path)
+    else:
+        attack_outcome_table = np.zeros((MAX_TROOP_CALC, MAX_TROOP_CALC, MAX_TROOP_CALC))
+        for defender in range(MAX_TROOP_CALC):
+            for attacker in range(MAX_TROOP_CALC):
+                outcomes = get_chances(attacker, defender, 0)
+                for (att_cnt, def_cnt), prob in outcomes:
+                    attack_outcome_table[defender][attacker][att_cnt] += prob
+        np.save(path, attack_outcome_table)
+    return attack_outcome_table
+
+
+def get_attack_outcomes(path: List[Node]):
+    attack_outcomes = get_attacker_outcome_table()
+    cur_outcome = np.zeros((MAX_TROOP_CALC,))
+    cur_outcome[min(MAX_TROOP_CALC - 1, path[0].number_of_troops)] = 1.
+    for node in path[1:]:
+        defenders = min(MAX_TROOP_CALC - 1, node.number_of_troops + node.number_of_fort_troops)
+        cur_outcome = np.matmul(cur_outcome, attack_outcomes[defenders])
+        cur_outcome = np.roll(cur_outcome, -1)
+        cur_outcome[0] += cur_outcome[-1]
+        cur_outcome[-1] = 0
+    return cur_outcome
+
+
 def get_win_rate(attack_troops, defend_troops):
-    all_pos = get_chances(attack_troops, defend_troops, 0)
-    exp = 0
-    for (attack, defence), possibility in all_pos:
-        if defence == 0:
-            exp += possibility
-    return exp
+    attack_troops = min(attack_troops, MAX_TROOP_CALC - 1)
+    defend_troops = min(defend_troops, MAX_TROOP_CALC - 1)
+    loss = get_attacker_outcome_table()[defend_troops][attack_troops][0]
+    loss += get_attacker_outcome_table()[defend_troops][attack_troops][1]
+    return 1 - loss
