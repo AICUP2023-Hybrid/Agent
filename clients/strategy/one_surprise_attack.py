@@ -118,7 +118,6 @@ class OneSurpriseAttack(Strategy):
         score = 0
         src, tar = path[0], path[-1]
         src_danger = get_node_danger(gdata, src)
-        outcomes = get_attack_outcomes(path)
 
         # TODO we can add +3 troops on successfully attacking to score too
         loss_gain_src = 0
@@ -128,8 +127,6 @@ class OneSurpriseAttack(Strategy):
             loss_gain_src = self.max_loss_cache[src.id]
 
         tar_gain = tar.score_of_strategic * self.calculate_gain(tar.owner)
-        if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
-            score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
 
         for node in path:
             node.save_version()
@@ -137,6 +134,29 @@ class OneSurpriseAttack(Strategy):
             node.number_of_troops = 1
             if node.id != path[0].id:
                 node.number_of_fort_troops = 0
+        src.number_of_troops += troops_to_put
+        outcomes = get_attack_outcomes(path)
+        first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
+        score -= 1. * (1 - first_win_prob)  # no +3 strategic
+        src.number_of_troops -= troops_to_put
+        if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
+            score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
+
+        if len(path) == 1:
+            if not src.is_strategic or src_danger <= 0:
+                score += 0
+            else:
+                src.number_of_troops += troops_to_put
+                if self.can_fort and not gdata.done_fort:
+                    src.number_of_troops *= 2
+                    src.number_of_troops -= 1
+                danger = get_node_danger(gdata, src)
+                if danger <= 0:
+                    score += 1. * (src.score_of_strategic + loss_gain_src)
+            for node in path:
+                node.restore_version()
+            print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score}')
+            return score
 
         # TODO can move and can fort should be accounted for here
         MAX_NUM = min(MAX_TROOP_CALC, path[0].number_of_troops + troops_to_put + 1)
@@ -213,8 +233,8 @@ class OneSurpriseAttack(Strategy):
         for node in path:
             node.restore_version()
 
-        # print(outcomes)
-        # print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score}')
+        print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score} /'
+              f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
         return score
 
     def check_attack_pairs(self, max_troops_to_put=None):
@@ -237,6 +257,7 @@ class OneSurpriseAttack(Strategy):
                 score = (score, -paths_length[src.id], attack_power)
                 if plan[1] < score:
                     plan = (path, score)
+
         if plan[1][0] < 0.1:
             for src in [n for n in gdata.nodes if n.owner == gdata.player_id and n.is_strategic]:
                 paths = nx.shortest_path(graph, source=src.id, weight='weight')
@@ -254,6 +275,12 @@ class OneSurpriseAttack(Strategy):
                     score = (score, -paths_length[target.id], attack_power)
                     if plan[1] < score:
                         plan = (path, score)
+
+                attack_power = src.number_of_troops + troops_to_put
+                score = self.get_general_attack_score([src], troops_to_put)
+                score = (score, 0, attack_power)
+                if plan[1] < score:
+                    plan = ([src], score)
 
         return plan
 
@@ -303,7 +330,7 @@ class OneSurpriseAttack(Strategy):
             )
         else:
             chosen_plan = self.check_attack_pairs(gdata.remaining_init[gdata.player_id])
-            if chosen_plan[1][0] < 0.1:
+            if chosen_plan[1][0] < 0:
                 chosen_plan = (None, (0, -np.Inf, -np.Inf))
         self.troops_to_put = gdata.remaining_init[gdata.player_id]
         self.attack_path = chosen_plan[0]

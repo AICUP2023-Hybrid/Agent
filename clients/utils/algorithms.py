@@ -1,11 +1,11 @@
 def balance_two_nodes_binary_search(left, right, danger_func, **kwargs):
     d = danger_func(right - 1, **kwargs)
-    if d <= 0:
+    if d > 0:
         return right
     while left < right - 1:
         x = (right + left) // 2
         d = danger_func(x, **kwargs)
-        x += (d / 0.6) // 2
+        x += (d / 0.7) // 2
         x = int(max(left, min(right - 1, x)))
         if d <= 0:
             right = x
