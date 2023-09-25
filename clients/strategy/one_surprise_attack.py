@@ -114,10 +114,22 @@ class OneSurpriseAttack(Strategy):
         )
 
     def get_general_attack_score(self, path: List[Node], troops_to_put):
+        if path[-1].id == 33:
+            if path[0].id == 32:
+                tmp = 0
+            if path[0].id == 27:
+                tmp = 1
         gdata = self.game.game_data
         score = 0
         src, tar = path[0], path[-1]
         src_danger = get_node_danger(gdata, src)
+
+        src.number_of_troops += troops_to_put
+        outcomes = get_attack_outcomes(path)
+        # print(outcomes[:3])
+        first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
+        score += 1. * first_win_prob  # no +3 strategic
+        src.number_of_troops -= troops_to_put
 
         # TODO we can add +3 troops on successfully attacking to score too
         loss_gain_src = 0
@@ -128,17 +140,13 @@ class OneSurpriseAttack(Strategy):
 
         tar_gain = tar.score_of_strategic * self.calculate_gain(tar.owner)
 
+        attack_force = path[0].number_of_troops + troops_to_put
         for node in path:
             node.save_version()
             node.owner = gdata.player_id
             node.number_of_troops = 1
             if node.id != path[0].id:
                 node.number_of_fort_troops = 0
-        src.number_of_troops += troops_to_put
-        outcomes = get_attack_outcomes(path)
-        first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
-        score += 1. * first_win_prob  # no +3 strategic
-        src.number_of_troops -= troops_to_put
         if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
             score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
 
@@ -146,7 +154,7 @@ class OneSurpriseAttack(Strategy):
             if not src.is_strategic or src_danger <= 0:
                 score += 0
             else:
-                src.number_of_troops += troops_to_put
+                src.number_of_troops = attack_force
                 if self.can_fort and not gdata.done_fort:
                     src.number_of_troops *= 2
                     src.number_of_troops -= 1
@@ -159,7 +167,7 @@ class OneSurpriseAttack(Strategy):
             return score
 
         # TODO can move and can fort should be accounted for here
-        MAX_NUM = min(MAX_TROOP_CALC, path[0].number_of_troops + troops_to_put + 1)
+        MAX_NUM = min(MAX_TROOP_CALC, attack_force + 1)
         max_check = MAX_NUM
 
         def two_nodes_danger_func(remaining_troops: int):
@@ -233,8 +241,8 @@ class OneSurpriseAttack(Strategy):
         for node in path:
             node.restore_version()
 
-        # print(f'src: {src.score_of_strategic}, tar: {tar.score_of_strategic} -> {score} /'
-        #       f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
+        #print(f'src: {src.score_of_strategic} [{src.id}], tar: {tar.score_of_strategic} [{tar.id}] -> {score} /'
+        #      f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
         return score
 
     def check_attack_pairs(self, max_troops_to_put=None):
@@ -330,7 +338,7 @@ class OneSurpriseAttack(Strategy):
             )
         else:
             chosen_plan = self.check_attack_pairs(gdata.remaining_init[gdata.player_id])
-            if chosen_plan[1][0] < 0:
+            if chosen_plan[1][0] < 1:
                 chosen_plan = (None, (0, -np.Inf, -np.Inf))
         self.troops_to_put = gdata.remaining_init[gdata.player_id]
         self.attack_path = chosen_plan[0]
