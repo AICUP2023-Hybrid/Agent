@@ -49,48 +49,6 @@ class OneSurpriseAttack(Strategy):
             return get_fort_from_nodes(gdata, [max_path[0]])
         return get_fort_from_nodes(gdata, [max_path[0], max_path[-1]])
 
-    def get_scenario_danger(self, path: List[Node], attack_power: float,
-                            src_matter=True, dst_matter=True):
-        if not src_matter and not dst_matter:
-            raise NotImplementedError
-        gdata = self.game.game_data
-        src, tar = path[0], path[-1]
-        for node in path:
-            node.save_version()
-            node.owner = gdata.player_id
-            node.number_of_troops = 1
-            if node.id != path[0].id:
-                node.number_of_fort_troops = 0
-        tar.number_of_troops = int(attack_power)
-        danger = np.Inf
-        if src_matter and dst_matter:
-            if self.can_move:
-                danger = balance_troops_between_two_strategics(
-                    gdata, tar, src, can_fort=self.can_fort, return_danger=True
-                )[1]
-            else:
-                if self.can_fort:
-                    tar.number_of_troops *= 2
-                    tar.number_of_troops -= 1
-                danger = max(get_node_danger(gdata, n) for n in [src, tar])
-        elif src_matter:
-            if self.can_move:
-                tar.number_of_troops = 1
-                src.number_of_troops = attack_power
-            if self.can_fort:
-                src.number_of_troops *= 2
-                src.number_of_troops -= 1
-            src.number_of_troops = round(src.number_of_troops)
-            danger = get_node_danger(gdata, src)
-        elif dst_matter:
-            if self.can_fort:
-                tar.number_of_troops = int(2 * attack_power - 1)
-            danger = get_node_danger(gdata, tar)
-
-        for node in path:
-            node.restore_version()
-        return danger
-
     # TODO define some theoretical basis for this
     def calculate_gain(self, opposition):
         gdata = self.game.game_data
