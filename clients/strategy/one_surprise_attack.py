@@ -198,21 +198,28 @@ class OneSurpriseAttack(Strategy):
                 ) if src_danger > 0 else 0  # saving old strategic
 
         # either save src or target
-        def can_save_node(remaining_troops: int, save_node: Node):
+        def can_save_node(remaining_troops: int, save_node: Node, danger_on_one_troop):
             if remaining_troops == 0:
                 return False
+            exp = get_expected_casualty()
             save_node.number_of_troops = remaining_troops
-            if self.can_fort:
+            if self.can_fort and not gdata.done_fort:
                 save_node.number_of_troops *= 2
                 save_node.number_of_troops -= 1
-            return get_node_danger(gdata, save_node) <= 0
+            d = danger_on_one_troop + exp[node.number_of_fort_troops + 1]
+            d -= exp[node.number_of_fort_troops + node.number_of_troops]
+            return d <= 0
 
+        src_one_troop_danger = get_node_danger(gdata, src)
         save_src_troops = binary_search(
-            0, max_check, can_save_node, False, save_node=src
+            0, max_check, can_save_node, False, save_node=src, danger_on_one_troop=src_one_troop_danger
         ) if src.is_strategic else MAX_NUM
+
+        tar_one_troop_danger = get_node_danger(gdata, tar)
         save_tar_troops = binary_search(
-            0, max_check, can_save_node, False, save_node=tar
+            0, max_check, can_save_node, False, save_node=tar, danger_on_one_troop=tar_one_troop_danger
         ) if tar.is_strategic else MAX_NUM
+
         if src.score_of_strategic < tar.score_of_strategic:
             save_tar_range = (save_tar_troops, max_check)
             save_src_range = (min(save_src_troops, save_tar_troops), save_tar_troops)
