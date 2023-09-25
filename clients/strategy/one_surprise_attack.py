@@ -2,7 +2,8 @@ import networkx as nx
 import numpy as np
 
 from clients.strategy.startegy import *
-from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics
+from clients.strategy.utils.balance_two_strategic import balance_troops_between_two_strategics, \
+    check_balance_two_strategic_possible
 from clients.strategy.utils.choose_fort_nodes import get_fort_from_nodes
 from clients.utils.algorithms import binary_search, balance_two_nodes_binary_search
 from clients.utils.attack_chance import get_expected_casualty, get_win_rate, get_attack_outcomes, MAX_TROOP_CALC
@@ -174,15 +175,10 @@ class OneSurpriseAttack(Strategy):
             if remaining_troops == 0:
                 return False
             tar.number_of_troops = remaining_troops
-            danger = balance_troops_between_two_strategics(
-                gdata, tar, src, can_fort=self.can_fort, return_danger=True
-            )[1]
-            return danger
+            return check_balance_two_strategic_possible(gdata, tar, src, can_fort=self.can_fort)
 
         if src.is_strategic and tar.is_strategic:  # holding both
-            max_check = balance_two_nodes_binary_search(
-                0, MAX_NUM, two_nodes_danger_func
-            )
+            max_check = binary_search(0, max_check, two_nodes_danger_func, left_value=False)
             for i in range(max_check, MAX_NUM):
                 prob = outcomes[i]
                 score += prob * (tar.score_of_strategic + tar_gain)  # holding new strategic
