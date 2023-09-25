@@ -130,8 +130,6 @@ class OneSurpriseAttack(Strategy):
         tar_gain = tar.score_of_strategic * self.calculate_gain(tar.owner)
         if src.is_strategic and src_danger <= 0:  # case of loss outcome = 0
             score -= outcomes[0] * (src.score_of_strategic + loss_gain_src)
-        first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
-        score -= 1. * (1 - first_win_prob)  # no +3 strategic
 
         for node in path:
             node.save_version()
