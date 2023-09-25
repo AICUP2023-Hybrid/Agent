@@ -7,6 +7,7 @@
 import json
 import datetime
 import os
+from time import time
 
 
 def calculate_score(main_game):
@@ -109,6 +110,7 @@ def change_turn(main_game, c_ai, c_two, c_three, directory = "tmp", visualize=Fa
         main_game.initialize_visualization(c_two,c_three,c_ai)
     while True:
         # increase the turn number and initialize the turn
+        start_time = time()
         player_id = main_game.start_turn()
 
         # add the turn number to the logs
@@ -151,8 +153,10 @@ def change_turn(main_game, c_ai, c_two, c_three, directory = "tmp", visualize=Fa
                 print('wrong id:' + str(player_id))
                 input()
         # end the turn to add the logs for client
+        end_time = time()
         main_game.end_turn()
 
+        print(f'time elapsed: {end_time - start_time}')
         if main_game.debug:
             main_game.print("end turn: " + datetime.datetime.now().strftime("%H:%M:%S"))
         # check if the game is finished
