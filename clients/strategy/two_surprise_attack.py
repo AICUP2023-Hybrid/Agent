@@ -72,10 +72,11 @@ class TwoSurpriseAttack(Strategy):
             path1 = [gdata.nodes[x] for x in nx.shortest_path(graph, mid.id, t1.id, weight='weight')]
             path2 = [gdata.nodes[x] for x in nx.shortest_path(graph, mid.id, t2.id, weight='weight')]
             if len(path1) > 1:
+                # print('boooooooooom')
                 next_node = path1[1]
-                l1p = max(0, self.l1 - graph.edges[mid.id, next_node.id])
+                l1p = max(0, self.l1 - graph.edges[mid.id, next_node.id]['weight'])
                 l2p = max(0, self.l2)
-                attack = AttackAction(mid.id, next_node, fraction=0,
+                attack = AttackAction(mid, next_node, fraction=0,
                                       move_fraction=max(0.001, min(0.999, l1p / (l1p + l2p))) if l1p + l2p > 0 else 0.5)
                 attacks.append(attack)
                 attacks.extend(get_one_path_attack_sequence(path1[1:]))

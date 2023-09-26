@@ -21,9 +21,32 @@ class OneSurpriseAttack(Strategy):
         self.attack_path = None
 
     def put_troops(self) -> List[PutTroopsAction]:
-        put_troops_action = PutTroopsAction(node=self.attack_path[0], number_of_troops=self.troops_to_put)
+        if len(self.attack_path) == 1:
+            gdata = self.game.game_data
+            src = self.attack_path[0]
+            src_one_troop_danger = get_node_danger(gdata, src)
 
-        return [put_troops_action]
+            def can_save_node(remaining_troops: int, save_node: Node, danger_on_one_troop):
+                if remaining_troops == 0:
+                    return False
+                exp = get_expected_casualty()
+                save_node.number_of_troops = remaining_troops
+                if self.can_fort and not gdata.done_fort:
+                    save_node.number_of_troops *= 2
+                    save_node.number_of_troops -= 1
+                d = danger_on_one_troop + exp[save_node.number_of_fort_troops + 1]
+                d -= exp[save_node.number_of_fort_troops + save_node.number_of_troops]
+                return d <= 0
+
+            save_src_troops = binary_search(
+                0, self.troops_to_put, can_save_node,
+                False, save_node=src, danger_on_one_troop=src_one_troop_danger
+            )
+            if save_src_troops > 0:
+                put = min(self.troops_to_put, save_src_troops + 2)
+                return [PutTroopsAction(node=self.attack_path[0], number_of_troops=put)]
+        else:
+            return [PutTroopsAction(node=self.attack_path[0], number_of_troops=self.troops_to_put)]
 
     def attacks(self) -> List[AttackAction]:
         path = self.attack_path
@@ -195,8 +218,8 @@ class OneSurpriseAttack(Strategy):
             if self.can_fort and not gdata.done_fort:
                 save_node.number_of_troops *= 2
                 save_node.number_of_troops -= 1
-            d = danger_on_one_troop + exp[node.number_of_fort_troops + 1]
-            d -= exp[node.number_of_fort_troops + node.number_of_troops]
+            d = danger_on_one_troop + exp[save_node.number_of_fort_troops + 1]
+            d -= exp[save_node.number_of_fort_troops + save_node.number_of_troops]
             return d <= 0
 
         src_one_troop_danger = get_node_danger(gdata, src)
@@ -237,8 +260,8 @@ class OneSurpriseAttack(Strategy):
         for node in path:
             node.restore_version()
 
-        #print(f'src: {src.score_of_strategic} [{src.id}], tar: {tar.score_of_strategic} [{tar.id}] -> {score} /'
-        #      f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
+        # print(f'src: {src.score_of_strategic} [{src.id}], tar: {tar.score_of_strategic} [{tar.id}] -> {score} /'
+        #       f' {src.number_of_troops + troops_to_put} - {tar.number_of_troops + tar.number_of_fort_troops}')
         return score
 
     def check_attack_pairs(self, max_troops_to_put=None):
