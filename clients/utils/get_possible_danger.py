@@ -138,17 +138,16 @@ def get_two_way_attack(gdata: GameData, node_st1: Node, node_st2: Node):
         candidate = (min(0, mx1) + min(0, mx2), 0, s1, s2, node_st1, node_st2, mx1, mx2)  # (score, type, src1, src2)
 
     for mid_node in gdata.nodes:
-        if mid_node.owner in [None, gdata.player_id]:
-            s_dist = nx.shortest_path_length(graph, target=mid_node.id, weight='weight')
-            e_dist = nx.shortest_path_length(graph, source=mid_node.id, weight='weight')
-            if node_st1.id not in e_dist or node_st2.id not in e_dist:
-                continue
-            b, c = e_dist[node_st1.id], e_dist[node_st2.id]
-            for src, dist in s_dist.items():
-                if gdata.nodes[src] in [None, gdata.player_id]:
-                    a = gdata.nodes[src].number_of_troops - dist
-                    if candidate is None or candidate[0] > a - b - c:
-                        candidate = (a - b - c, 1, gdata.nodes[src], mid_node, node_st1, node_st2, b, c)
+        s_dist = nx.shortest_path_length(graph, target=mid_node.id, weight='weight')
+        e_dist = nx.shortest_path_length(graph, source=mid_node.id, weight='weight')
+        if node_st1.id not in e_dist or node_st2.id not in e_dist:
+            continue
+        b, c = e_dist[node_st1.id], e_dist[node_st2.id]
+        for src, dist in s_dist.items():
+            if gdata.nodes[src].owner in [None, gdata.player_id]:
+                a = gdata.nodes[src].number_of_troops - dist
+                if candidate is None or candidate[0] < a - b - c:
+                    candidate = (a - b - c, 1, gdata.nodes[src], mid_node, node_st1, node_st2, b, c)
 
     if candidate is not None:
         score = remaining_troops + candidate[0]

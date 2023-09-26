@@ -99,6 +99,8 @@ class TwoSurpriseAttack(Strategy):
 
         for node_st1 in strategic_nodes:
             for node_st2 in strategic_nodes:
+                if node_st1.id == node_st2.id:
+                    continue
                 attack_plan = get_two_way_attack(gdata, node_st1, node_st2)
                 if attack_plan is None:
                     continue
