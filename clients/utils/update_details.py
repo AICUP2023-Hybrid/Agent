@@ -88,7 +88,8 @@ class GameData:
             self.later_added[i] = n_nodes_belonging[i] // 4 + n_strategic_belonging[i]
             self.remaining_init[i] = self.later_added[i]  # temporary substitute for remaining troops
             if self.phase_2_turns == 1:
-                self.remaining_init[i] += self.temp_phase0_remains[i]
+                for j in range(self.player_id + 1, self.player_cnt):
+                    self.remaining_init[j] += self.temp_phase0_remains[j]
             else:
                 self.remaining_init[i] += 3
 
