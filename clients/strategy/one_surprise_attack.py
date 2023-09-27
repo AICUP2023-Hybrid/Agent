@@ -64,7 +64,7 @@ class OneSurpriseAttack(Strategy):
         gdata = self.game.game_data
         max_path = self.attack_path
         if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id and len(max_path) > 1:
-            if not max_path[-1].is_strategic:
+            if not max_path[-1].is_strategic and max_path[-1].number_of_troops > 1:
                 return MoveTroopAction(
                     src=max_path[-1], dest=max_path[0], count=max_path[-1].number_of_troops - 1
                 )
