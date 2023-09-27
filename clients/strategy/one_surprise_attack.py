@@ -140,11 +140,6 @@ class OneSurpriseAttack(Strategy):
         )
 
     def get_general_attack_score(self, path: List[Node], troops_to_put):
-        if path[-1].id == 33:
-            if path[0].id == 32:
-                tmp = 0
-            if path[0].id == 27:
-                tmp = 1
         gdata = self.game.game_data
         score = 0
         src, tar = path[0], path[-1]
@@ -156,6 +151,7 @@ class OneSurpriseAttack(Strategy):
         # Don't even consider low probability attacks
         win_prob = 1 - outcomes[0]
         if win_prob < 0.7:
+            src.number_of_troops -= troops_to_put
             return -np.inf
 
         # print(outcomes[:3])
