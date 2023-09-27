@@ -64,6 +64,10 @@ class OneSurpriseAttack(Strategy):
         gdata = self.game.game_data
         max_path = self.attack_path
         if max_path[0].is_strategic and max_path[-1].owner == gdata.player_id and len(max_path) > 1:
+            if not max_path[-1].is_strategic:
+                return MoveTroopAction(
+                    src=max_path[-1], dest=max_path[0], count=max_path[-1].number_of_troops - 1
+                )
             return balance_troops_between_two_strategics(gdata, max_path[-1], max_path[0])
 
     def fortify(self) -> Optional[FortAction]:
