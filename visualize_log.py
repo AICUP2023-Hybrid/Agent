@@ -13,7 +13,7 @@ if sys.argv[1] == '-f':
 elif sys.argv[1] == '-g':
     game_id = int(sys.argv[2])
     api_url = 'https://api.aicup2023.ir/api/match/'
-    auth = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjk1NzQ4NzYzLCJpYXQiOjE2OTU2NjIzNjMsImp0aSI6IjE0MzkwZDgzZjBkYjQ5YzFhNjU2ZTQ1MGZhNzZlZDM5IiwidXNlcl9pZCI6MTIzNH0.AmaZQ1XYS4DmvB8_9Z0GYkWLDdeE45_sr-gHJRodZq4'
+    auth = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjk1ODQzMDM2LCJpYXQiOjE2OTU3NTY2MzYsImp0aSI6ImNhZDgxZjkyZGUwMTRjYzdhOGRkYzExOGRhMDRjM2I4IiwidXNlcl9pZCI6MTIzNH0.7P5fu2d1TYXCkoRMjFgbKFB5nOZWI4cgb6BhtLYUm1M'
     games = requests.get(api_url, headers={'Authorization': auth}).json()
     game = games[len(games) - game_id]
     matches = game['sub_matches']
