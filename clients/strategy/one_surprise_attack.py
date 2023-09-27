@@ -1,3 +1,5 @@
+import math
+
 import networkx as nx
 import numpy as np
 
@@ -150,6 +152,12 @@ class OneSurpriseAttack(Strategy):
 
         src.number_of_troops += troops_to_put
         outcomes = get_attack_outcomes(path)
+
+        # Don't even consider low probability attacks
+        win_prob = 1 - outcomes[0]
+        if win_prob < 0.7:
+            return -np.inf
+
         # print(outcomes[:3])
         first_win_prob = 1 - get_attack_outcomes([path[0], path[1]])[0] if len(path) > 1 else 0
         score += 1. * first_win_prob  # no +3 strategic

@@ -125,7 +125,7 @@ class Strategy:
 
         self.run_fortify_strategy(go_next_state=True)
 
-    def run_strategy_until_feasible(self):
+    def run_strategy_until_feasible(self, n_tries=1):
         gdata = self.game.game_data
         # initial attempt (put troops section)
         plan_exists = self.compute_plan(attempt=0)
@@ -139,9 +139,11 @@ class Strategy:
             self.run_move_troops_strategy(go_next_state=True)
             self.run_fortify_strategy(go_next_state=True)
 
+            cnt += 1
+            if cnt == n_tries:
+                return cnt
             # find a plan again
             plan_exists = self.compute_plan(attempt=1)
-            cnt += 1
         return cnt
 
     def run_strategy_until_success(self):
