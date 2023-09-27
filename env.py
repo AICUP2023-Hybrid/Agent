@@ -31,7 +31,7 @@ class GameEnv:
     def reset(self):
         global kernel_config
         kernel_main_game = Game()
-        kernel_main_game.read_map('./maps/map3.json')
+        kernel_main_game.read_map('./maps/map4.json')
         read_config()
         kernel = Kernel(kernel_main_game, kernel_config)
 

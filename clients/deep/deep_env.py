@@ -3,10 +3,12 @@ from typing import Optional
 import gym
 import networkx as nx
 import numpy as np
+from networkx import NetworkXNoPath
 
 from clients.client_ai import ClientAi
 from clients.game_client import GameClient
 from clients.stages.initializer import initialize_turn
+from clients.strategy.one_surprise_attack import OneSurpriseAttack
 from clients.utils.update_details import GameData
 from env import GameEnv
 
@@ -19,7 +21,8 @@ class DummyClient:
         self.game = self.join_kernel()
         self.game.ai_client = self
         self.name_id = name_id
-        print(self.kernel.ready(self.game.get_player_id()))
+        self.kernel.ready(self.game.get_player_id())
+        # print('1')
 
     def join_kernel(self):
         login_response = self.kernel.login()
@@ -34,7 +37,7 @@ class DummyClient:
         self.game.next_state()
 
     def __name__(self):
-        return f"Aggressive Chad {self.name_id}"
+        return f"Dummy {self.name_id}"
 
 
 class OnePlayerEnv(gym.Env):
@@ -57,7 +60,24 @@ class OnePlayerEnv(gym.Env):
         return self._get_obs(), self._get_info()
 
     def step(self, action):
-        # convert action to real chain of actions and perform it?
+        # convert action to real chain of actions and perform it
+        gdata = self.game_data
+
+        stra_nodes = gdata.get_strategic_nodes()
+        src = stra_nodes[action % 6]
+        tar = stra_nodes[(action // 6) % 6]
+        try:
+            if src.owner == gdata.player_id and tar.owner != gdata.player_id:
+                graph = gdata.get_passable_board_graph(self.player_id)
+                path = nx.shortest_path(graph, src.id, tar.id)
+                path = [gdata.nodes[nid] for nid in path]
+
+                plan = OneSurpriseAttack(gdata.game)
+                plan.troops_to_put = gdata.remaining_init[gdata.player_id]
+                plan.attack_path = path
+                plan.run_strategy()
+        except NetworkXNoPath:
+            pass
 
         self.env.end_step()
 
@@ -74,7 +94,6 @@ class OnePlayerEnv(gym.Env):
 
     def _get_obs(self):
         gdata = self.game_data
-
         # assuming each strategic has an owner
         final_graph = nx.DiGraph()
         for i in range(gdata.player_cnt):
@@ -91,9 +110,30 @@ class OnePlayerEnv(gym.Env):
                         final_graph.add_edge(src.id, dst.id, weight=lengths[src.id])
                 empty_node_weight = np.Inf
                 for src in [n for n in gdata.nodes if n.owner is None]:
-                    empty_node_weight = min(lengths[src.id], empty_node_weight)
+                    if src.id in lengths:
+                        empty_node_weight = min(lengths[src.id], empty_node_weight)
                 if empty_node_weight != np.Inf:
                     final_graph.add_edge(-pid - 1, dst.id, weight=empty_node_weight)
+
+        return {
+            'adj': nx.to_numpy_array(final_graph, nonedge=100., weight='weight'),
+            'scores': [n.score_of_strategic for n in gdata.get_strategic_nodes()],
+            'troops_to_put': gdata.remaining_init[gdata.player_id]
+        }
+
+    @property
+    def observation_space(self):
+        return gym.spaces.Dict(
+            {
+                'adj': gym.spaces.Box(0., 100., shape=(9, 9), dtype=float),
+                'scores': gym.spaces.Box(0., 8., shape=(6,), dtype=int),
+                "troops_to_put": gym.spaces.Box(0, 100, shape=(1,), dtype=int)
+            }
+        )
+
+    @property
+    def action_space(self):
+        return gym.spaces.Discrete(6 * 6)
 
     def _get_info(self):
         return {"turn_number": self.env.game.turn_number}

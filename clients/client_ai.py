@@ -15,7 +15,7 @@ class ClientAi:
         self.game = self.join_kernel()
         self.game.ai_client = self
         self.name_id = name_id
-        print(self.kernel.ready(self.game.get_player_id()))
+        self.kernel.ready(self.game.get_player_id())
 
     def join_kernel(self):
         login_response = self.kernel.login()
