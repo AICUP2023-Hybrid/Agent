@@ -44,7 +44,8 @@ def initialize_turn(game: GameClient | online_src.game.Game):
         if not node.is_strategic:
             break
         if node.owner is None:
-            print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
+            # print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
+            game.put_one_troop(node.id)
             return
 
     # Add two nodes to initialization for reachability and extra troop
@@ -67,7 +68,8 @@ def initialize_turn(game: GameClient | online_src.game.Game):
                         max_score = score
                         tar = mid1
         if tar is not None:
-            print(game.put_one_troop(tar.id), "-- putting one troop on", tar.id)
+            # print(game.put_one_troop(tar.id), "-- putting one troop on", tar.id)
+            game.put_one_troop(tar.id)
             return
 
     my_nodes = [
@@ -90,5 +92,6 @@ def initialize_turn(game: GameClient | online_src.game.Game):
             my_nodes.pop()
         for node, score, danger in my_nodes:
             if danger > 0:
-                print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
+                # print(game.put_one_troop(node.id), "-- putting one troop on", node.id)
+                game.put_one_troop(node.id)
                 return

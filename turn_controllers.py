@@ -1,9 +1,3 @@
-# author: Mohamad Mahdi Reisi
-# Date: 2023/8/16
-
-# Edit: Vahid Ghafourian
-# Date: 2023/09/06
-
 import json
 import datetime
 import os
@@ -26,7 +20,7 @@ def calculate_score(main_game):
     return scores
 
 
-def check_finish(main_game):
+def check_finish(main_game, enable_logs=True):
     # check if the game pass the minimum number of turns
     if main_game.turn_number < int(main_game.config["minimum_number_of_turns"]):
         return False, None, ''
@@ -45,19 +39,22 @@ def check_finish(main_game):
         if players_strategic_nodes_count[i] >= int(main_game.config["number_of_strategic_nodes_to_win"]):
             if main_game.debug:
                 main_game.print("player won because of having enough strategic nodes")
-            print("Player ", str(i), " won because of having enough strategic nodes.")
+            if enable_logs:
+                print("Player ", str(i), " won because of having enough strategic nodes.")
             scores = calculate_score(main_game)
             scores[i] += sum(scores)
-            game_finished(main_game, scores)
+            if enable_logs:
+                game_finished(main_game, scores)
             return True, int(str(i)), 'by_strategic'
     # check if the game is finished
     if main_game.turn_number >= int(main_game.config["number_of_turns"]):
         if main_game.debug:
             main_game.print("game finished because of number of turns")
         scores = calculate_score(main_game)
-        print("The game ended due to the completion of the number of turns and player", scores.index(max(scores)),
-              "won with a score of:", max(scores))
-        game_finished(main_game, scores)
+        if enable_logs:
+            print("The game ended due to the completion of the number of turns and player", scores.index(max(scores)),
+                  "won with a score of:", max(scores))
+            game_finished(main_game, scores)
         return True, scores.index(max(scores)), 'by_score'
     return False, None, ''
 

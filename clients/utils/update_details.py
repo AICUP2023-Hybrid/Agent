@@ -26,6 +26,7 @@ class GameData:
         self.turn_number = None
         self.done_fort = False
         self.players_done_fort = [False, False, False]
+        self.strategic_nodes = []
 
     def update_game_state(self):
         if len(self.nodes) == 0:
@@ -46,6 +47,7 @@ class GameData:
             for node, score in strategic_nodes:
                 self.nodes[node].is_strategic = True
                 self.nodes[node].score_of_strategic = score
+                self.strategic_nodes.append(self.nodes[node])
         self.turn_number = self.game.get_turn_number()['turn_number']
 
         for node_idx_str, owner_id in self.game.get_owners().items():
@@ -71,6 +73,13 @@ class GameData:
             self.remaining_init = [0, 0, 0]
             self.remaining_init[self.player_id] = self.game.get_number_of_troops_to_put()['number_of_troops']
             # TODO calculate other players troop count
+
+    def get_strategic_nodes(self, player_id=None, except_player=None) -> List[Node]:
+        return [
+            node for node in self.strategic_nodes
+            if (player_id is None or node.owner == player_id) and
+               (except_player is None or node.owner != except_player)
+        ]
 
     def update_remaining_troops_by_map(self):
         n_nodes_belonging = defaultdict(lambda: 0)
