@@ -33,8 +33,6 @@ class TwoSurpriseAttack(Strategy):
                     p1 += 1
                     l1 -= 1
                 tmp -= 1
-            self.l1 = l1
-            self.l2 = l2
             if p1 > 0:
                 put_troops_action = PutTroopsAction(node=s1, number_of_troops=p1)
                 put_troops_action_list.append(put_troops_action)
@@ -46,6 +44,8 @@ class TwoSurpriseAttack(Strategy):
             if remaining_troops > 0:
                 put_troops_action = PutTroopsAction(node=s, number_of_troops=remaining_troops)
                 put_troops_action_list.append(put_troops_action)
+        self.l1 = l1
+        self.l2 = l2
         return put_troops_action_list
 
     def attacks(self) -> List[AttackAction]:
