@@ -50,11 +50,11 @@ def plan_attack(game: GameClient | online_src.game.Game):
         return
 
     # mess with the opposition
-    mess_strategy = MessStrategy(game)
-    shall_pass = mess_strategy.compute_plan()
-    if shall_pass:
-        mess_strategy.run_strategy()
-        return
+    # mess_strategy = MessStrategy(game)
+    # shall_pass = mess_strategy.compute_plan()
+    # if shall_pass:
+    #     mess_strategy.run_strategy()
+    #     return
 
     # +3 force attack
     plus3_strategy = Plus3Strategy(game)
