@@ -34,23 +34,25 @@ def maximize_score(game: GameClient, can_put_troops=True):
         attack_graph.add_node(node)
 
     while True:
-        min_w, par, tar = 1000, None, None
+        max_attack_power, par, tar, w = -1000, None, None, None
         for u, v, a in graph.edges(data=True):
             weight = a['weight']
             if u not in cur_nodes or v in cur_nodes:
                 continue
             pot = potential[src_node[u].id]
-            if weight <= min_w and weight <= pot + remaining_troops:
-                min_w = weight
+            attack_power = pot - weight
+            if attack_power >= max_attack_power and weight <= pot + remaining_troops:
+                max_attack_power = attack_power
+                w = weight
                 par = gdata.nodes[u]
                 tar = gdata.nodes[v]
-        if min_w == 1000:
+        if max_attack_power == -1000:
             break
-        attack_graph.add_edge(par.id, tar.id, weight=min_w)
+        attack_graph.add_edge(par.id, tar.id, weight=w)
         src = src_node[par.id]
         src_node[tar.id] = src_node[par.id]
-        left = ceil(max(0, min_w - potential[src.id]))
-        potential[src.id] = floor(max(0, potential[src.id] - min_w))
+        left = ceil(max(0, w - potential[src.id]))
+        potential[src.id] = floor(max(0, potential[src.id] - w))
         cur_nodes.append(tar.id)
         remaining_troops -= left
         puts[src.id] += left
@@ -86,10 +88,25 @@ def maximize_score(game: GameClient, can_put_troops=True):
         for nei in attack_graph.neighbors(node_id):
             # print(game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum), file=log_file)
             try:
-                game.attack(node.id, nei, 1, max(0.001, min(0.999, exp_cas[nei] / exp_sum)))
+                game.attack(node.id, nei, 0, max(0.001, min(0.999, exp_cas[nei] / exp_sum)))
                 has_attack = True
             except:
                 pass
             exp_sum -= exp_cas[nei]
         if has_attack:
             gdata.update_game_state()
+
+    can_attack = True
+    while can_attack:
+        can_attack = False
+        gdata.update_game_state()
+        for node in gdata.nodes:
+            if node.owner == gdata.player_id and node.number_of_troops > 1:
+                for nei in sorted(node.adj_main_map, key=lambda n: n.number_of_troops):
+                    if nei.owner != gdata.player_id:
+                        can_attack = True
+                        try:
+                            game.attack(node.id, nei, 0, 0.999)
+                            break
+                        except:
+                            pass
