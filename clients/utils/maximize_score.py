@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import networkx as nx
+from math import ceil, floor
 
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
@@ -27,7 +28,7 @@ def maximize_score(game: GameClient, can_put_troops=True):
     graph = gdata.get_passable_board_graph(gdata.player_id)
     attack_graph = nx.DiGraph()
     src_node = [node if node.id in cur_nodes else None for node in gdata.nodes]
-    potential = [node.number_of_troops if node.id in cur_nodes else 0 for node in gdata.nodes]
+    potential = [node.number_of_troops - 1 if node.id in cur_nodes else 0 for node in gdata.nodes]
 
     for node in graph.nodes:
         attack_graph.add_node(node)
@@ -48,13 +49,12 @@ def maximize_score(game: GameClient, can_put_troops=True):
         attack_graph.add_edge(par.id, tar.id, weight=min_w)
         src = src_node[par.id]
         src_node[tar.id] = src_node[par.id]
-        left = max(0, min_w - potential[src.id])
-        potential[src.id] = max(0, potential[src.id] - min_w)
+        left = ceil(max(0, min_w - potential[src.id]))
+        potential[src.id] = floor(max(0, potential[src.id] - min_w))
         cur_nodes.append(tar.id)
-        while left > 0:
-            remaining_troops -= 1
-            puts[src.id] += 1
-            left -= 1
+        remaining_troops -= left
+        puts[src.id] += left
+
     while remaining_troops > 0 and len(puts) > 0:
         for node_id, put_troops in puts.items():
             puts[node_id] += 1
@@ -71,7 +71,7 @@ def maximize_score(game: GameClient, can_put_troops=True):
     for node in sorted_nodes:
         exp_cas[node] += expected_casualty[gdata.nodes[node].number_of_troops]
         for nei in attack_graph.neighbors(node):
-            exp_cas[node] += expected_casualty[nei]
+            exp_cas[node] += exp_cas[nei]
 
     if can_put_troops:
         for node_id, put_troops in puts.items():
@@ -86,10 +86,10 @@ def maximize_score(game: GameClient, can_put_troops=True):
         for nei in attack_graph.neighbors(node_id):
             # print(game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum), file=log_file)
             try:
-                game.attack(node.id, nei, 1, exp_cas[nei] / exp_sum)
+                game.attack(node.id, nei, 1, max(0.001, min(0.999, exp_cas[nei] / exp_sum)))
+                has_attack = True
             except:
                 pass
             exp_sum -= exp_cas[nei]
-            has_attack = True
         if has_attack:
             gdata.update_game_state()
