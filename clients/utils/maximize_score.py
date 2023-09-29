@@ -1,10 +1,12 @@
 from collections import defaultdict
+from typing import List, Set
 
 import networkx as nx
 from math import ceil, floor
 
 from clients.game_client import GameClient
 from clients.utils.attack_chance import get_expected_casualty
+from components.node import Node
 
 
 def maximize_score(game: GameClient, can_put_troops=True):
@@ -96,17 +98,33 @@ def maximize_score(game: GameClient, can_put_troops=True):
         if has_attack:
             gdata.update_game_state()
 
-    can_attack = True
-    while can_attack:
-        can_attack = False
+    while True:
         gdata.update_game_state()
+
+        attack_round_nodes: Set[Node] = set()
         for node in gdata.nodes:
-            if node.owner == gdata.player_id and node.number_of_troops > 1:
+            if node.owner == gdata.player_id and node.number_of_troops > 1 and node not in attack_round_nodes:
                 for nei in sorted(node.adj_main_map, key=lambda n: n.number_of_troops):
-                    if nei.owner != gdata.player_id:
-                        can_attack = True
+                    if nei.owner != gdata.player_id and nei not in attack_round_nodes:
                         try:
-                            game.attack(node.id, nei, 0, 0.999)
+                            src_neighbours = _get_unowned_neighbours(node, gdata.player_id)
+                            dst_neighbours = _get_unowned_neighbours(nei, gdata.player_id)
+                            move_fraction = len(dst_neighbours - src_neighbours) / max(
+                                len((dst_neighbours | src_neighbours) - set(nei)), 1)
+                            game.attack(node.id, nei.id, 0, _std_mv_frac(move_fraction))
+                            attack_round_nodes.add(node)
+                            attack_round_nodes.add(nei)
                             break
                         except:
                             pass
+
+        if len(attack_round_nodes) == 0:
+            break
+
+
+def _get_unowned_neighbours(node: Node, player_id) -> Set[Node]:
+    return set(nei for nei in node.adj_main_map if nei.owner != player_id)
+
+
+def _std_mv_frac(frac: float):
+    return max(min(frac, 0.999), 0.001)
