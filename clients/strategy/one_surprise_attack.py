@@ -32,12 +32,15 @@ class OneSurpriseAttack(Strategy):
                 if remaining_troops == 0:
                     return False
                 exp = get_expected_casualty()
-                save_node.number_of_troops = remaining_troops
+                initial_troops = save_node.number_of_troops
+                save_node.save_version()
+                save_node.number_of_troops += remaining_troops
                 if self.can_fort and not gdata.done_fort:
                     save_node.number_of_troops *= 2
                     save_node.number_of_troops -= 1
-                d = danger_on_one_troop + exp[save_node.number_of_fort_troops + 1]
+                d = danger_on_one_troop + exp[initial_troops + save_node.number_of_fort_troops]
                 d -= exp[save_node.number_of_fort_troops + save_node.number_of_troops]
+                save_node.restore_version()
                 return d <= 0
 
             save_src_troops = binary_search(
@@ -222,12 +225,14 @@ class OneSurpriseAttack(Strategy):
             if remaining_troops == 0:
                 return False
             exp = get_expected_casualty()
+            save_node.save_version()
             save_node.number_of_troops = remaining_troops
             if self.can_fort and not gdata.done_fort:
                 save_node.number_of_troops *= 2
                 save_node.number_of_troops -= 1
             d = danger_on_one_troop + exp[save_node.number_of_fort_troops + 1]
             d -= exp[save_node.number_of_fort_troops + save_node.number_of_troops]
+            save_node.restore_version()
             return d <= 0
 
         src_one_troop_danger = get_node_danger(gdata, src)
