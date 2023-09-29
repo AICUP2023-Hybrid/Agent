@@ -147,7 +147,7 @@ def get_two_way_attack(gdata: GameData, node_st1: Node, node_st2: Node):
             if gdata.nodes[src].owner in [None, gdata.player_id]:
                 a = gdata.nodes[src].number_of_troops - dist
                 if candidate is None or candidate[0] < a - b - c:
-                    candidate = (a - b - c, 1, gdata.nodes[src], mid_node, node_st1, node_st2, b, c)
+                    candidate = (a - b - c, 1, gdata.nodes[src], mid_node, node_st1, node_st2, -b, -c)
 
     if candidate is not None:
         score = remaining_troops + candidate[0]

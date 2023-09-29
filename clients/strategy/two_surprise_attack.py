@@ -77,7 +77,9 @@ class TwoSurpriseAttack(Strategy):
                 l1p = max(0, self.l1 - graph.edges[mid.id, next_node.id]['weight'])
                 l2p = max(0, self.l2)
                 attack = AttackAction(mid, next_node, fraction=0,
-                                      move_fraction=max(0.001, min(0.999, l1p / (l1p + l2p))) if l1p + l2p > 0 else 0.5)
+                                      move_fraction=max(0.001, min(0.999,
+                                                                   l1p / (l1p + l2p) if l1p + l2p > 0 else 1
+                                                                   )))
                 attacks.append(attack)
                 attacks.extend(get_one_path_attack_sequence(path1[1:]))
             attacks.extend(get_one_path_attack_sequence(path2))
