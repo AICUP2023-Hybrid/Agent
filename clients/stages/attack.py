@@ -24,7 +24,7 @@ def plan_attack(game: GameClient | online_src.game.Game):
             max_strategics = num_stra
     # surprise two strategic attack
     condition = (
-            gdata.turn_number >= 126 and len(my_strategic) >= 2
+            gdata.turn_number >= 126 and len(my_strategic) == 2
     ) or (gdata.turn_number == 125 and max_strategics >= 5)
     two_surprise_attack_strategy = TwoSurpriseAttack(game, condition)
     shall_pass = two_surprise_attack_strategy.compute_plan()
