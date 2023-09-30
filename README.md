@@ -20,7 +20,11 @@ The scoring algorithm works by estimating the expected troop gain on the success
 
 
 # ThreePlus Attack
-
+Since a sucessful attack gives us a 3 additional troops gains for the next round, an additional strategy to `One Strategic Attack` is provided in case no attack is performed in the previous strategies. Assuming we have $M$ troops to put in our turn, let $0 \leq i \leq M$ be a candidate number of troops to put in order to attack. Also, let $u$ be a node in which we are planning to place the $i$ troops on, with the initial troops $I$, and let $v$ be a neighboring node of $u$ that we wish to attack, with $J$ troops. We assosciate a score to the plan $(u,v,i)$ and choose the tuple with the maximum score. The loss is defined as follows ($c$ is the expected casualty of attacking $J$ troops with $I$ troops) :
+$$loss(u,v,i) = c + 0.15 * (i - max(0, c - I))$$
+And letting $w$ be the winning probability of attacking $J$ troops with $I$ troops, we have
+$$score = 3 * w - loss$$
+with the condition that $J \leq 4$ and $loss \leq 3$ (otherwise, we don't perform any attacks).
 
 # Maximize Score
 
