@@ -17,9 +17,11 @@ The concept of `danger` of a node $u$ —along with `attack power` of a player w
 
 $$danger(u) = \max\limits_{i \in P\setminus \{p\}} \max\limits_{v \in V_i \bigcup U} \texttt{attackpower}(i,v,u)$$
 
-where attackpower of a player with the source node $v$ and the target node $u$ is defined as follows (where $\mathcal{P}^{i}_{vu}$ is the set of all feasible paths or straight attack plans for the player $i$, and $c_i$ is the estimated troops gained by the player $i$ when it's their turn after we finish):
+where attackpower of a player with the source node $v$ and the target node $u$ is defined as follows ($\mathcal{P}^{i}_{vu}$ is the set of all feasible paths or straight attack plans for the player $i$, and $c_i$ is the estimated troops gained by the player $i$ when it's their turn after we finish):
 
 $$attackpower(i,v,u) =  \max\limits_{0 \leq j \leq c} \max\limits_{path \in \mathcal{P}^{i}_{vu}}  (troops(v) + j) - \texttt{expected$\textunderscore$casualty}(path)$$
+
+while $troops(v)$ is the current number of troops on the node $v$, and expected_casualty of a path is the sum of its weights in the `expected casualty graph`.
 
 # One Strategic Attack
 
