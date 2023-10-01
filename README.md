@@ -12,7 +12,7 @@ To determine the feasibility of capturing a node with 'x' troops, we calculate t
 
 The scoring algorithm assesses the expected troop gains upon successfully capturing a node and the damage inflicted on other players. Several optimizations, such as matrix multiplication and custom-guided binary searches were implemented to ensure algorithm efficiency.
 
-The concept of the danger associated with a node 'u' and the attack power of a player with specified source and target nodes are pivotal definitions for our algorithms. These concepts are repeatedly employed to inform our strategic decisions. Let 'P' represent the set of all players in the game. The calculation of danger(u) is defined as follows, where 'p' is the player to which 'u' belongs, 'V_i' is the set of all nodes belonging to player 'i,' and 'U' is the set of all nodes not occupied by any players:
+The concept of the danger associated with a node 'u' and the attack power of a player with specified source and target nodes are pivotal definitions for our algorithms. These concepts are repeatedly employed to inform our strategic decisions. Let '$P$' represent the set of all players in the game. The calculation of $danger(u)$ is defined as follows, where $p$ is the player to which $u$ belongs, $V_i$ is the set of all nodes belonging to player $i$, and $U$ is the set of all nodes not occupied by any players:
 
 $$danger(u) = \max\limits_{i \in P\setminus \{p\}} \max\limits_{v \in V_i \bigcup U} \texttt{attackpower}(i,v,u)$$
 
@@ -20,7 +20,7 @@ where `attackpower` of a player with the source node $v$ and the target node $u$
 
 $$attackpower(i,v,u) =  \max\limits_{0 \leq j \leq c} \max\limits_{path \in \mathcal{P}^{i}_{vu}}  (troops(v) + j) - \texttt{expected$\textunderscore$casualty}(path)$$
 
-where $troops(v)$ is the current number of troops on the node $v$, and expected_casualty of a path is the sum of its weights in the `expected casualty graph`.
+where $troops(v)$ is the current number of troops on the node $v$, and expected_casualty of a path is the sum of its weights in the *expected casualty graph*.
 
 
 # One Strategic Attack
