@@ -28,7 +28,15 @@ This strategy is devised to identify the optimal attack route from players' stra
 
 In the initial stage, we systematically iterate over all source nodes (players' strategic nodes). We employ the Dijkstra algorithm on the expected casualty graph to calculate the shortest paths from each source node to all other nodes. These calculated paths are then added to the list of candidates.
 
-In the subsequent stage, we compute a score for each candidate move. The score function is as follows
+In the subsequent stage, we compute a score for each candidate move. The score function is defined as the sum of the following terms:
+
+$$ holdscore = \sum_{x \in H} p(x) * indanger(src) * (src_{strategic score} + src_{loss gain} + tar_{strategic_score} + tar_gain) $$
+
+$$ tradeoff = \sum_{x \in T} p(x) * indanger(src) * (src_{strategic score} + src_{loss gain} + tar_{strategic_score} + tar_{gain}) $$
+
+where $p$ is the probability 
+
+For the outcomes
 
 # Two Strategic Attack
 
