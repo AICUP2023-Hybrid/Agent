@@ -13,6 +13,14 @@ For a node with `x` troops we calculate the expected casualty it would take to c
 
 The scoring algorithm works by estimating the expected troop gain on the successful capture of a node and the damage that is caused to the other players. There are multiple tricks implemented here to make the algorithm time efficient like using matrix multiplication in probability calculations and custom-guided binary searches to find out the number of troops that are needed to save each node.
 
+The concept of `danger` of a node $u$ —along with `attack power` of a player with a specified `src` and `tar` node— is one of the most important things we have defined, which has been utilized repeatedly in our algorithms. Let $P$ be the set of all players, then `danger(u)` is defined as follows (where $p$ is the player to which $u$ belongs, and $V_i$ is the set of all nodes belonging to the player $i$, and $U$ is the set of all nodes which are not occupied by any players):
+
+$$danger(u) = \max\limits_{i \in P\setminus \{p\}} \max\limits_{v \in V_i \bigcup U} \texttt{attackpower}(i,v,u)$$
+
+where attackpower of a player with the source node $v$ and the target node $u$ is defined as follows (where $\mathcal{P}^{i}_{vu}$ is the set of all feasible paths or straight attack plans for the player $i$, and $c_i$ is the estimated troops gained by the player $i$ when it's their turn after we finish):
+
+$$attackpower(i,v,u) =  \max\limits_{0 \leq j \leq c} \max\limits_{path \in \mathcal{P}^{i}_{vu}}  (troops(v) + j) - \texttt{expected$\textunderscore$casualty}(path)$$
+
 # One Strategic Attack
 
 
