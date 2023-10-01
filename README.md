@@ -32,9 +32,11 @@ In the subsequent stage, we compute a score for each candidate move. The score f
 
 $$ hold = \sum_{x \in H} p(x) * (indanger(src) * (src_{strategic score} + src_{loss gain}) + tar_{strategic_score} + tar_{gain}) $$
 
-$$ tradeoff_{tar} = \sum_{x \in T_tar} p(x) * (indanger(src) * (src_{strategic score} + src_{loss gain}) + tar_{gain}) $$
+$$ tradeoff_{tar} = \sum_{x \in T_{tar}} p(x) * (indanger(src) * (src_{strategic score} + src_{loss gain}) + tar_{gain}) $$
 
-$$ tradeoff_{src} = \sum_{x \in T_src} p(c) * ((1 - indanger(src)) * -(src_{strategic score} + src_{loss gain}) + tar_{strategic_score} + tar_{gain}) $$
+$$ tradeoff_{src} = \sum_{x \in T_{src}} p(x) * ((1 - indanger(src)) * -(src_{strategic score} + src_{loss gain}) + tar_{strategic_score} + tar_{gain}) $$
+
+$$ zero = \sum_{x \in Z} p(x) * ((1 - indanger(src)) * -(src_{strategic score} + src_{loss gain}) + tar_{gain}) $$
 
 where $p$ is the probability 
 
