@@ -63,7 +63,7 @@ $$
 Our implementation also accounts for specific corner cases that broaden the scoring system. These cases include scenarios where no attacks were successful, resulting in a lack of the +3 troop bonus for successful attacks. Additionally, it addresses situations where there's no intention to attack other nodes, and the focus is solely on deploying troops to a particular node.
 
 # Two Strategic Attack
-If there's a possibility to win by capturing two strategic nodes, this strategy is implemented. It systematically evaluates all feasible paths for capturing these two nodes and selects the one with the highest likelihood of success.
+If there's a possibility to win by capturing two strategic nodes, this strategy is implemented. It systematically evaluates all feasible attack plans with at most one branch point for capturing these two nodes and selects the one with the highest likelihood of success. By an attack with one branch point, we mean a forest where only one node has 3 neighbors, which is the split point.
 
 
 # ThreePlus Attack
