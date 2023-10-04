@@ -42,7 +42,7 @@ Where,
 
 $$ indanger(u) = 
 \begin{cases}
-  0, & danger(u) <= 0 \\
+  0, & danger(u) \leq 0 \\
   1, & 0 < danger(u) \\
 \end{cases}
 $$
@@ -56,7 +56,7 @@ Since some outcomes might be shared between $S_{src}$ and $S_{tar}$, we'll defin
 $$
 \begin{cases}
 T_{src} := S_{src} \setminus S_{tar}, T_{tar} := S_{tar}, & src_{strategic\ score} < tar_{strategic\ score} \\
-T_{tar} := S_{tar} \setminus S_{src}, T_{src} := S_{src}, & src_{strategic\ score} >= tar_{strategic\ score}
+T_{tar} := S_{tar} \setminus S_{src}, T_{src} := S_{src}, & src_{strategic\ score} \geq tar_{strategic\ score}
 \end{cases}
 $$
 
